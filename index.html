@@ -28,7 +28,6 @@
             padding: 16px;
             width: 100%;
             max-width: 460px;
-            backdrop-filter: blur(20px);
         }
         
         .header {
@@ -72,7 +71,6 @@
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none;
         }
         
         .camera-placeholder {
@@ -121,7 +119,7 @@
             font-size: 15px;
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.25s;
             margin-bottom: 14px;
             display: flex;
             align-items: center;
@@ -164,7 +162,7 @@
             border: 2px solid #334155;
             border-radius: 12px;
             cursor: pointer;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.25s;
             font-size: 11px;
             color: #94a3b8;
             display: flex;
@@ -173,25 +171,7 @@
             justify-content: center;
             gap: 3px;
             background: #1e293b;
-            position: relative;
-            overflow: hidden;
         }
-        
-        .beauty-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0.2;
-            transition: opacity 0.3s ease;
-        }
-        
-        .beauty-btn.none::before { background: linear-gradient(135deg, #64748b 0%, #475569 100%); }
-        .beauty-btn.natural::before { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); }
-        .beauty-btn.glamour::before { background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); }
-        .beauty-btn.ai::before { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); }
         
         .beauty-btn:hover {
             border-color: #6366f1;
@@ -204,18 +184,12 @@
             color: #fff;
         }
         
-        .beauty-btn.active::before {
-            opacity: 0.4;
-        }
-        
         .beauty-icon {
             font-size: 18px;
-            z-index: 1;
         }
         
         .beauty-name {
             font-weight: 600;
-            z-index: 1;
         }
         
         .ai-sliders {
@@ -254,11 +228,11 @@
         
         .beauty-slider {
             width: 100%;
-            height: 6px;
+            height: 8px;
             -webkit-appearance: none;
             appearance: none;
             background: #334155;
-            border-radius: 3px;
+            border-radius: 4px;
             outline: none;
             cursor: pointer;
         }
@@ -266,8 +240,8 @@
         .beauty-slider::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
             background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
             border-radius: 50%;
             cursor: pointer;
@@ -286,7 +260,7 @@
             border: 2px solid #334155;
             border-radius: 12px;
             cursor: pointer;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.25s;
             font-size: 10px;
             color: #94a3b8;
             display: flex;
@@ -309,8 +283,8 @@
         }
         
         .preset-color {
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
             border-radius: 50%;
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
@@ -326,11 +300,11 @@
         
         .brightness-slider {
             width: 100%;
-            height: 8px;
+            height: 10px;
             -webkit-appearance: none;
             appearance: none;
             background: linear-gradient(90deg, #1e293b 0%, #6366f1 50%, #8b5cf6 100%);
-            border-radius: 4px;
+            border-radius: 5px;
             outline: none;
             cursor: pointer;
         }
@@ -338,8 +312,8 @@
         .brightness-slider::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 22px;
-            height: 22px;
+            width: 24px;
+            height: 24px;
             background: #fff;
             border-radius: 50%;
             cursor: pointer;
@@ -351,7 +325,6 @@
             font-size: 11px;
             color: #64748b;
             margin-top: 5px;
-            font-weight: 500;
         }
         
         .action-buttons {
@@ -367,7 +340,7 @@
             font-size: 13px;
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.25s;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -395,12 +368,6 @@
         
         .voice-btn.active {
             background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.03); }
         }
         
         .capture-btn {
@@ -419,21 +386,12 @@
         
         .voice-hint.active {
             display: block;
-            animation: fadeIn 0.3s ease;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-8px); }
-            to { opacity: 1; transform: translateY(0); }
         }
         
         .voice-hint h4 {
             color: #10b981;
             font-size: 12px;
             margin-bottom: 6px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
             font-weight: 600;
         }
         
@@ -466,12 +424,6 @@
             height: 8px;
             border-radius: 50%;
             background: #10b981;
-            animation: pulse-dot 2s ease-in-out infinite;
-        }
-        
-        @keyframes pulse-dot {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
         }
         
         .status-text {
@@ -532,37 +484,37 @@
             <div class="slider-row">
                 <div class="slider-label">
                     <span>✨ 磨皮</span>
-                    <span class="slider-value" id="smoothValue">40</span>
+                    <span class="slider-value" id="smoothValue">60</span>
                 </div>
-                <input type="range" class="beauty-slider" id="smoothSlider" min="0" max="100" value="40">
+                <input type="range" class="beauty-slider" id="smoothSlider" min="0" max="100" value="60">
             </div>
             <div class="slider-row">
                 <div class="slider-label">
                     <span>💡 美白</span>
-                    <span class="slider-value" id="whiteningValue">30</span>
+                    <span class="slider-value" id="whiteningValue">50</span>
                 </div>
-                <input type="range" class="beauty-slider" id="whiteningSlider" min="0" max="100" value="30">
+                <input type="range" class="beauty-slider" id="whiteningSlider" min="0" max="100" value="50">
             </div>
             <div class="slider-row">
                 <div class="slider-label">
                     <span>🌟 提亮</span>
-                    <span class="slider-value" id="brightenValue">25</span>
+                    <span class="slider-value" id="brightenValue">40</span>
                 </div>
-                <input type="range" class="beauty-slider" id="brightenSlider" min="0" max="100" value="25">
+                <input type="range" class="beauty-slider" id="brightenSlider" min="0" max="100" value="40">
             </div>
             <div class="slider-row">
                 <div class="slider-label">
                     <span>👋 瘦脸</span>
-                    <span class="slider-value" id="faceSlimValue">20</span>
+                    <span class="slider-value" id="faceSlimValue">30</span>
                 </div>
-                <input type="range" class="beauty-slider" id="faceSlimSlider" min="0" max="100" value="20">
+                <input type="range" class="beauty-slider" id="faceSlimSlider" min="0" max="100" value="30">
             </div>
             <div class="slider-row">
                 <div class="slider-label">
                     <span>👁️ 大眼</span>
-                    <span class="slider-value" id="eyeEnlargeValue">15</span>
+                    <span class="slider-value" id="eyeEnlargeValue">25</span>
                 </div>
-                <input type="range" class="beauty-slider" id="eyeEnlargeSlider" min="0" max="100" value="15">
+                <input type="range" class="beauty-slider" id="eyeEnlargeSlider" min="0" max="100" value="25">
             </div>
         </div>
         
@@ -588,8 +540,8 @@
         
         <div class="section-title">🔆 补光强度</div>
         <div class="brightness-control">
-            <input type="range" class="brightness-slider" id="brightnessSlider" min="0" max="100" value="40">
-            <div class="brightness-value" id="brightnessValue">强度: 40%</div>
+            <input type="range" class="brightness-slider" id="brightnessSlider" min="0" max="100" value="50">
+            <div class="brightness-value" id="brightnessValue">强度: 50%</div>
         </div>
         
         <div class="voice-hint" id="voiceHint">
@@ -636,22 +588,22 @@
         const eyeEnlargeSlider = document.getElementById('eyeEnlargeSlider');
         
         const presetColors = {
-            warm: { r: 255, g: 200, b: 150 },
-            cool: { r: 180, g: 220, b: 255 },
-            natural: { r: 255, g: 245, b: 200 },
-            sunset: { r: 255, g: 160, b: 160 }
+            warm: { r: 255, g: 210, b: 160 },
+            cool: { r: 200, g: 230, b: 255 },
+            natural: { r: 255, g: 250, b: 220 },
+            sunset: { r: 255, g: 180, b: 170 }
         };
         
         const beautyPresets = {
             none: { smooth: 0, whitening: 0, brighten: 0, faceSlim: 0, eyeEnlarge: 0 },
-            natural: { smooth: 40, whitening: 30, brighten: 25, faceSlim: 20, eyeEnlarge: 15 },
-            glamour: { smooth: 70, whitening: 50, brighten: 40, faceSlim: 40, eyeEnlarge: 30 },
-            ai: { smooth: 60, whitening: 45, brighten: 35, faceSlim: 35, eyeEnlarge: 25 }
+            natural: { smooth: 60, whitening: 50, brighten: 40, faceSlim: 30, eyeEnlarge: 25 },
+            glamour: { smooth: 80, whitening: 70, brighten: 60, faceSlim: 50, eyeEnlarge: 40 },
+            ai: { smooth: 75, whitening: 65, brighten: 55, faceSlim: 45, eyeEnlarge: 35 }
         };
         
         let currentPreset = 'warm';
         let currentBeautyStyle = 'natural';
-        let currentBrightness = 40;
+        let currentBrightness = 50;
         let isLightOn = true;
         let isCameraOn = false;
         let isVoiceOn = false;
@@ -776,59 +728,72 @@
             const faceSlimStrength = parseInt(faceSlimSlider.value) / 100;
             const eyeEnlargeStrength = parseInt(eyeEnlargeSlider.value) / 100;
             
-            const imageData = ctx.getImageData(0, 0, width, height);
-            const data = imageData.data;
-            
             if (smoothStrength > 0 || whiteningStrength > 0 || brightenStrength > 0) {
-                for (let i = 0; i < data.length; i += 4) {
-                    let r = data[i];
-                    let g = data[i + 1];
-                    let b = data[i + 2];
-                    
-                    if (isSkinColor(r, g, b)) {
-                        if (smoothStrength > 0) {
-                            const blurred = applyBilateralBlur(data, width, height, i, smoothStrength);
-                            r = r * (1 - smoothStrength * 0.8) + blurred[0] * smoothStrength * 0.8;
-                            g = g * (1 - smoothStrength * 0.8) + blurred[1] * smoothStrength * 0.8;
-                            b = b * (1 - smoothStrength * 0.8) + blurred[2] * smoothStrength * 0.8;
+                const imageData = ctx.getImageData(0, 0, width, height);
+                const data = imageData.data;
+                
+                for (let y = 0; y < height; y++) {
+                    for (let x = 0; x < width; x++) {
+                        const idx = (y * width + x) * 4;
+                        
+                        let r = data[idx];
+                        let g = data[idx + 1];
+                        let b = data[idx + 2];
+                        
+                        let isSkin = isSkinColor(r, g, b);
+                        
+                        if (smoothStrength > 0 && isSkin) {
+                            let blurR = 0, blurG = 0, blurB = 0, count = 0;
+                            const blurSize = Math.floor(2 + smoothStrength * 3);
+                            
+                            for (let dy = -blurSize; dy <= blurSize; dy++) {
+                                for (let dx = -blurSize; dx <= blurSize; dx++) {
+                                    const nx = Math.min(Math.max(0, x + dx), width - 1);
+                                    const ny = Math.min(Math.max(0, y + dy), height - 1);
+                                    const nidx = (ny * width + nx) * 4;
+                                    
+                                    const dist = Math.sqrt(dx * dx + dy * dy);
+                                    if (dist <= blurSize) {
+                                        blurR += data[nidx];
+                                        blurG += data[nidx + 1];
+                                        blurB += data[nidx + 2];
+                                        count++;
+                                    }
+                                }
+                            }
+                            
+                            blurR /= count;
+                            blurG /= count;
+                            blurB /= count;
+                            
+                            const blendFactor = smoothStrength * 0.85;
+                            r = r * (1 - blendFactor) + blurR * blendFactor;
+                            g = g * (1 - blendFactor) + blurG * blendFactor;
+                            b = b * (1 - blendFactor) + blurB * blendFactor;
                         }
                         
-                        if (whiteningStrength > 0) {
-                            const yc = 0.299 * r + 0.587 * g + 0.114 * b;
-                            const cb = -0.169 * r - 0.331 * g + 0.5 * b + 128;
-                            const cr = 0.5 * r - 0.419 * g - 0.081 * b + 128;
+                        if (whiteningStrength > 0 && isSkin) {
+                            const avg = (r + g + b) / 3;
+                            const targetAvg = 180 + whiteningStrength * 45;
+                            const whitened = avg + (targetAvg - avg) * whiteningStrength * 0.8;
+                            const factor = whitened / (avg || 1);
                             
-                            let newY = Math.min(255, yc * (1 + whiteningStrength * 0.2));
-                            let newCb = Math.max(0, Math.min(255, cb - whiteningStrength * 8));
-                            let newCr = Math.max(0, Math.min(255, cr - whiteningStrength * 12));
-                            
-                            const finalR = Math.max(0, Math.min(255, newY + 1.402 * (newCr - 128)));
-                            const finalG = Math.max(0, Math.min(255, newY - 0.344 * (newCb - 128) - 0.714 * (newCr - 128)));
-                            const finalB = Math.max(0, Math.min(255, newY + 1.772 * (newCb - 128)));
-                            
-                            r = r * (1 - whiteningStrength * 0.7) + finalR * whiteningStrength * 0.7;
-                            g = g * (1 - whiteningStrength * 0.7) + finalG * whiteningStrength * 0.7;
-                            b = b * (1 - whiteningStrength * 0.7) + finalB * whiteningStrength * 0.7;
+                            r = Math.min(255, r * factor);
+                            g = Math.min(255, g * factor);
+                            b = Math.min(255, b * factor);
                         }
                         
                         if (brightenStrength > 0) {
-                            const brightenAmount = brightenStrength * 0.3;
-                            r = Math.min(255, r * (1 + brightenAmount));
-                            g = Math.min(255, g * (1 + brightenAmount));
-                            b = Math.min(255, b * (1 + brightenAmount));
+                            const brightenFactor = isSkin ? 1 + brightenStrength * 0.4 : 1 + brightenStrength * 0.15;
+                            r = Math.min(255, r * brightenFactor);
+                            g = Math.min(255, g * brightenFactor);
+                            b = Math.min(255, b * brightenFactor);
                         }
-                    } else {
-                        if (brightenStrength > 0) {
-                            const brightenAmount = brightenStrength * 0.1;
-                            r = Math.min(255, r * (1 + brightenAmount));
-                            g = Math.min(255, g * (1 + brightenAmount));
-                            b = Math.min(255, b * (1 + brightenAmount));
-                        }
+                        
+                        data[idx] = Math.min(255, Math.max(0, r));
+                        data[idx + 1] = Math.min(255, Math.max(0, g));
+                        data[idx + 2] = Math.min(255, Math.max(0, b));
                     }
-                    
-                    data[i] = Math.min(255, Math.max(0, r));
-                    data[i + 1] = Math.min(255, Math.max(0, g));
-                    data[i + 2] = Math.min(255, Math.max(0, b));
                 }
                 
                 ctx.putImageData(imageData, 0, 0);
@@ -840,67 +805,17 @@
         }
         
         function isSkinColor(r, g, b) {
-            const rNorm = r / 255;
-            const gNorm = g / 255;
-            const bNorm = b / 255;
+            if (r < 60 || g < 30 || b < 20) return false;
+            if (r < g || r < b) return false;
+            if (Math.abs(r - g) < 15) return false;
             
-            const max = Math.max(rNorm, gNorm, bNorm);
-            const min = Math.min(rNorm, gNorm, bNorm);
-            const delta = max - min;
+            const max = Math.max(r, g, b);
+            const min = Math.min(r, g, b);
+            const sat = (max - min) / max;
             
-            const sat = max === 0 ? 0 : delta / max;
-            const light = (max + min) / 2;
+            if (sat < 0.1 || sat > 0.8) return false;
             
-            const rRatio = r / (g + 0.01);
-            const rgDiff = r - g;
-            
-            return (r > 95 && g > 40 && b > 20 &&
-                    r > g && r > b && rgDiff > 15 &&
-                    Math.abs(r - g) > 10);
-        }
-        
-        function applyBilateralBlur(data, width, height, idx, strength) {
-            const x = (idx / 4) % width;
-            const y = Math.floor(idx / 4 / width);
-            const kernelSize = Math.floor(3 + strength * 5);
-            const halfKernel = Math.floor(kernelSize / 2);
-            
-            let sumR = 0, sumG = 0, sumB = 0, weightSum = 0;
-            
-            const centerR = data[idx];
-            const centerG = data[idx + 1];
-            const centerB = data[idx + 2];
-            
-            for (let dy = -halfKernel; dy <= halfKernel; dy++) {
-                for (let dx = -halfKernel; dx <= halfKernel; dx++) {
-                    const nx = Math.min(Math.max(0, x + dx), width - 1);
-                    const ny = Math.min(Math.max(0, y + dy), height - 1);
-                    const nidx = (ny * width + nx) * 4;
-                    
-                    const nR = data[nidx];
-                    const nG = data[nidx + 1];
-                    const nB = data[nidx + 2];
-                    
-                    const colorDist = Math.sqrt(
-                        (nR - centerR) ** 2 + 
-                        (nG - centerG) ** 2 + 
-                        (nB - centerB) ** 2
-                    );
-                    
-                    const spaceDist = Math.sqrt(dx * dx + dy * dy);
-                    
-                    const colorWeight = Math.exp(-colorDist / (2 * 30 * strength + 10));
-                    const spaceWeight = Math.exp(-spaceDist / (2 * 5));
-                    const weight = colorWeight * spaceWeight;
-                    
-                    sumR += nR * weight;
-                    sumG += nG * weight;
-                    sumB += nB * weight;
-                    weightSum += weight;
-                }
-            }
-            
-            return [sumR / weightSum, sumG / weightSum, sumB / weightSum];
+            return true;
         }
         
         function applyFaceWarp(ctx, width, height, faceSlimStrength, eyeEnlargeStrength) {
@@ -915,7 +830,12 @@
             
             const centerX = width / 2;
             const centerY = height / 2;
-            const faceRadius = Math.min(width, height) * 0.35;
+            const faceRadius = Math.min(width, height) * 0.38;
+            
+            const leftEyeX = centerX - width * 0.17;
+            const rightEyeX = centerX + width * 0.17;
+            const eyeY = centerY - height * 0.12;
+            const eyeRadius = Math.min(width, height) * 0.07;
             
             for (let y = 0; y < height; y++) {
                 for (let x = 0; x < width; x++) {
@@ -924,19 +844,19 @@
                     
                     const distToCenter = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
                     
-                    if (distToCenter < faceRadius * 1.5) {
-                        const angle = Math.atan2(y - centerY, x - centerX);
-                        const horizontalFactor = Math.abs(Math.cos(angle));
-                        const verticalFactor = Math.abs(Math.sin(angle));
-                        
+                    if (distToCenter < faceRadius * 1.6) {
                         if (faceSlimStrength > 0) {
-                            const cheekYStart = centerY - faceRadius * 0.3;
-                            const cheekYEnd = centerY + faceRadius * 0.7;
+                            const angle = Math.atan2(y - centerY, x - centerX);
+                            const horizontalFactor = Math.abs(Math.cos(angle));
+                            const verticalFactor = Math.abs(Math.sin(angle));
                             
-                            if (y > cheekYStart && y < cheekYEnd) {
+                            const cheekYStart = centerY - faceRadius * 0.2;
+                            const cheekYEnd = centerY + faceRadius * 0.8;
+                            
+                            if (y > cheekYStart && y < cheekYEnd && horizontalFactor > 0.3) {
                                 const yProgress = (y - cheekYStart) / (cheekYEnd - cheekYStart);
-                                const cheekInfluence = Math.sin(yProgress * Math.PI);
-                                const slimAmount = faceSlimStrength * cheekInfluence * horizontalFactor * 0.25;
+                                const influence = Math.sin(yProgress * Math.PI) * horizontalFactor;
+                                const slimAmount = faceSlimStrength * influence * 0.3;
                                 
                                 const dx = x - centerX;
                                 srcX = centerX + dx * (1 - slimAmount);
@@ -944,17 +864,12 @@
                         }
                         
                         if (eyeEnlargeStrength > 0) {
-                            const leftEyeX = centerX - width * 0.18;
-                            const rightEyeX = centerX + width * 0.18;
-                            const eyeY = centerY - height * 0.1;
-                            const eyeRadius = Math.min(width, height) * 0.08;
-                            
                             for (const eyeX of [leftEyeX, rightEyeX]) {
                                 const eyeDist = Math.sqrt((x - eyeX) ** 2 + (y - eyeY) ** 2);
                                 
-                                if (eyeDist < eyeRadius * 2) {
-                                    const eyeInfluence = Math.max(0, 1 - eyeDist / (eyeRadius * 2));
-                                    const enlargeAmount = eyeEnlargeStrength * eyeInfluence * 0.2;
+                                if (eyeDist < eyeRadius * 2.5) {
+                                    const influence = Math.max(0, 1 - eyeDist / (eyeRadius * 2.5));
+                                    const enlargeAmount = eyeEnlargeStrength * influence * 0.25;
                                     
                                     const dx = x - eyeX;
                                     const dy = y - eyeY;
@@ -982,7 +897,7 @@
                     const idx10 = (srcY1 * width + srcX0) * 4;
                     const idx11 = (srcY1 * width + srcX1) * 4;
                     
-                    for (let c = 0; c < 4; c++) {
+                    for (let c = 0; c < 3; c++) {
                         const v00 = sourceImage.data[idx00 + c];
                         const v01 = sourceImage.data[idx01 + c];
                         const v10 = sourceImage.data[idx10 + c];
@@ -994,6 +909,7 @@
                         
                         outputImage.data[dstIdx + c] = Math.round(v);
                     }
+                    outputImage.data[dstIdx + 3] = 255;
                 }
             }
             
@@ -1004,12 +920,29 @@
             const color = presetColors[currentPreset];
             const alpha = currentBrightness / 100;
             
+            ctx.save();
+            ctx.globalCompositeOperation = 'screen';
+            
+            const gradient = ctx.createRadialGradient(
+                width * 0.5, height * 0.3, 0,
+                width * 0.5, height * 0.3, Math.max(width, height) * 0.7
+            );
+            
+            gradient.addColorStop(0, `rgba(${color.r}, ${color.g}, ${color.b}, ${alpha * 0.5})`);
+            gradient.addColorStop(0.5, `rgba(${color.r}, ${color.g}, ${color.b}, ${alpha * 0.25})`);
+            gradient.addColorStop(1, `rgba(${color.r}, ${color.g}, ${color.b}, 0)`);
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, width, height);
+            
+            ctx.restore();
+            
             const imageData = ctx.getImageData(0, 0, width, height);
             const data = imageData.data;
             
-            const centerX = width / 2;
-            const centerY = height * 0.35;
-            const maxRadius = Math.max(width, height) * 0.8;
+            const centerX = width * 0.5;
+            const centerY = height * 0.3;
+            const maxRadius = Math.max(width, height) * 0.6;
             
             for (let y = 0; y < height; y++) {
                 for (let x = 0; x < width; x++) {
@@ -1017,25 +950,11 @@
                     
                     const dist = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
                     const falloff = Math.max(0, 1 - dist / maxRadius);
-                    const falloffCurve = falloff * falloff;
-                    const localAlpha = alpha * falloffCurve * 0.4;
+                    const influence = alpha * falloff * 0.35;
                     
-                    let r = data[idx];
-                    let g = data[idx + 1];
-                    let b = data[idx + 2];
-                    
-                    const blendR = r * (1 - localAlpha) + color.r * localAlpha;
-                    const blendG = g * (1 - localAlpha) + color.g * localAlpha;
-                    const blendB = b * (1 - localAlpha) + color.b * localAlpha;
-                    
-                    const brightnessBoost = 1 + localAlpha * 0.3;
-                    r = Math.min(255, blendR * brightnessBoost);
-                    g = Math.min(255, blendG * brightnessBoost);
-                    b = Math.min(255, blendB * brightnessBoost);
-                    
-                    data[idx] = Math.min(255, Math.max(0, r));
-                    data[idx + 1] = Math.min(255, Math.max(0, g));
-                    data[idx + 2] = Math.min(255, Math.max(0, b));
+                    data[idx] = Math.min(255, data[idx] + color.r * influence);
+                    data[idx + 1] = Math.min(255, data[idx + 1] + color.g * influence);
+                    data[idx + 2] = Math.min(255, data[idx + 2] + color.b * influence);
                 }
             }
             
