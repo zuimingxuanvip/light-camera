@@ -563,6 +563,40 @@
             50% { opacity: 0.3; }
         }
         
+        .voice-feedback {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: #10b981;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            display: none;
+            z-index: 20;
+            text-align: center;
+            max-width: 90%;
+            word-wrap: break-word;
+        }
+        
+        .voice-feedback.active {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+        
         .footer {
             text-align: center;
             margin-top: 16px;
@@ -614,6 +648,30 @@
                 transform: translateY(0);
             }
         }
+        
+        .countdown-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 120px;
+            font-weight: 800;
+            color: #f59e0b;
+            text-shadow: 0 0 30px rgba(245, 158, 11, 0.8);
+            display: none;
+            z-index: 30;
+        }
+        
+        .countdown-display.active {
+            display: block;
+            animation: countPop 1s ease;
+        }
+        
+        @keyframes countPop {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -630,7 +688,9 @@
                 <div class="listening-dot"></div>
                 <span>正在听...</span>
             </div>
+            <div class="voice-feedback" id="voiceFeedback"></div>
             <div class="beauty-style-indicator" id="beautyStyleIndicator"></div>
+            <div class="countdown-display" id="countdownDisplay"></div>
             <div class="camera-placeholder" id="cameraPlaceholder">
                 <span class="icon">📷</span>
                 <h3>开启相机体验</h3>
@@ -665,7 +725,7 @@
             <h4>🎤 语音控制已开启</h4>
             <ul>
                 <li>说"拍照"或"茄子"即可自拍</li>
-                <li>说"开始"或"321"倒计时拍照</li>
+                <li>说"321"或"开始"倒计时3秒拍照</li>
             </ul>
         </div>
         
@@ -737,6 +797,8 @@
         const voiceHint = document.getElementById('voiceHint');
         const listeningIndicator = document.getElementById('listeningIndicator');
         const beautyStyleIndicator = document.getElementById('beautyStyleIndicator');
+        const voiceFeedback = document.getElementById('voiceFeedback');
+        const countdownDisplay = document.getElementById('countdownDisplay');
         
         const presetColors = {
             warm: { gradient: 'radial-gradient(circle at center, rgba(255, 236, 210, 0.8) 0%, rgba(252, 182, 159, 0.6) 50%, rgba(252, 182, 159, 0.2) 100%)', hex: '#FFB69F' },
@@ -810,6 +872,78 @@
             else if (ua.includes('iphone') || ua.includes('ipad')) browser.os = 'iOS';
             
             return browser;
+        }
+        
+        function getMicrophoneGuideHTML() {
+            const browser = getBrowserInfo();
+            let guideHTML = '<div class="permission-guide"><h4>🎤 开启麦克风权限方法</h4>';
+            
+            if (browser.isChrome || browser.isEdge) {
+                if (browser.os === 'Mac' || browser.os === 'Windows') {
+                    guideHTML += `
+                        <div class="browser-info">
+                            <div class="browser-name">Chrome / Edge 浏览器</div>
+                            <ol>
+                                <li>点击浏览器地址栏左侧的 🔒 锁定图标</li>
+                                <li>找到"麦克风"设置</li>
+                                <li>选择"允许"或"在此网站上始终允许"</li>
+                                <li>刷新此页面重试</li>
+                            </ol>
+                        </div>
+                    `;
+                } else if (browser.os === 'Android' || browser.os === 'iOS') {
+                    guideHTML += `
+                        <div class="browser-info">
+                            <div class="browser-name">Chrome 移动版</div>
+                            <ol>
+                                <li>打开手机"设置"</li>
+                                <li>找到"应用" → "Chrome"</li>
+                                <li>点击"权限" → "麦克风"</li>
+                                <li>选择"允许"</li>
+                                <li>回到浏览器刷新页面</li>
+                            </ol>
+                        </div>
+                    `;
+                }
+            } else if (browser.isSafari) {
+                guideHTML += `
+                    <div class="browser-info">
+                        <div class="browser-name">Safari 浏览器</div>
+                        <ol>
+                            <li>点击左上角"Safari"菜单</li>
+                            <li>选择"网站设置"</li>
+                            <li>找到"麦克风"权限</li>
+                            <li>选择"允许"</li>
+                        </ol>
+                    </div>
+                `;
+            } else if (browser.isFirefox) {
+                guideHTML += `
+                    <div class="browser-info">
+                        <div class="browser-name">Firefox 浏览器</div>
+                        <ol>
+                            <li>点击地址栏左侧的 🔒 或 ℹ️ 图标</li>
+                            <li>点击"连接安全"旁的箭头</li>
+                            <li>点击"更多信息" → "权限"</li>
+                            <li>找到"麦克风"并选择"允许"</li>
+                        </ol>
+                    </div>
+                `;
+            } else {
+                guideHTML += `
+                    <div class="browser-info">
+                        <div class="browser-name">通用方法</div>
+                        <ol>
+                            <li>检查浏览器设置中的隐私/权限选项</li>
+                            <li>确保麦克风权限已开启</li>
+                            <li>刷新页面重试</li>
+                        </ol>
+                    </div>
+                `;
+            }
+            
+            guideHTML += '</div>';
+            return guideHTML;
         }
         
         function getPermissionGuideHTML() {
@@ -900,7 +1034,7 @@
             return guideHTML;
         }
         
-        function showPlaceholder(mode) {
+        function showPlaceholder(mode, customMessage = '') {
             if (mode === 'welcome') {
                 cameraPlaceholder.innerHTML = `
                     <span class="icon">📷</span>
@@ -930,6 +1064,22 @@
                     <p>请确保您的设备有可用的摄像头</p>
                     <p>并已授予相机权限</p>
                     ${getPermissionGuideHTML()}
+                    <button class="retry-btn" onclick="location.reload()">🔄 刷新页面重试</button>
+                `;
+            } else if (mode === 'microphone-denied') {
+                cameraPlaceholder.innerHTML = `
+                    <span class="icon">🎤</span>
+                    <h3>麦克风权限被拒绝</h3>
+                    <p>请按照以下指南开启权限</p>
+                    ${getMicrophoneGuideHTML()}
+                    <button class="retry-btn" onclick="location.reload()">🔄 刷新页面重试</button>
+                `;
+            } else if (mode === 'microphone-error') {
+                cameraPlaceholder.innerHTML = `
+                    <span class="icon">🎤</span>
+                    <h3>无法访问麦克风</h3>
+                    <p>${customMessage}</p>
+                    ${getMicrophoneGuideHTML()}
                     <button class="retry-btn" onclick="location.reload()">🔄 刷新页面重试</button>
                 `;
             }
@@ -1160,10 +1310,50 @@
             }, 1500);
         }
         
+        function showCountdown(callback) {
+            let count = 3;
+            countdownDisplay.textContent = count;
+            countdownDisplay.classList.add('active');
+            
+            const interval = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    countdownDisplay.textContent = count;
+                    countdownDisplay.classList.remove('active');
+                    setTimeout(() => countdownDisplay.classList.add('active'), 50);
+                } else {
+                    countdownDisplay.textContent = '📸';
+                    countdownDisplay.classList.remove('active');
+                    setTimeout(() => countdownDisplay.classList.add('active'), 50);
+                    setTimeout(() => {
+                        countdownDisplay.classList.remove('active');
+                        callback();
+                    }, 800);
+                    clearInterval(interval);
+                }
+            }, 1000);
+        }
+        
+        async function requestMicrophonePermission() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                stream.getTracks().forEach(track => track.stop());
+                return true;
+            } catch (err) {
+                console.error('麦克风权限错误:', err);
+                if (err.name === 'NotAllowedError') {
+                    showPlaceholder('microphone-denied');
+                } else {
+                    showPlaceholder('microphone-error', err.message || '未知错误');
+                }
+                return false;
+            }
+        }
+        
         function initVoiceRecognition() {
             if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                alert('抱歉，您的浏览器不支持语音识别功能');
-                return;
+                alert('抱歉，您的浏览器不支持语音识别功能\n\n推荐使用 Chrome 浏览器以获得最佳体验');
+                return false;
             }
             
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -1177,63 +1367,136 @@
                 voiceHint.classList.add('active');
                 listeningIndicator.classList.add('active');
                 isVoiceOn = true;
+                showVoiceFeedback('正在聆听...');
             };
             
             recognition.onend = () => {
                 if (isVoiceOn) {
-                    recognition.start();
+                    try {
+                        recognition.start();
+                    } catch (err) {
+                        console.error('重启语音识别失败:', err);
+                        isVoiceOn = false;
+                        voiceBtn.classList.remove('active');
+                        voiceHint.classList.remove('active');
+                        listeningIndicator.classList.remove('active');
+                        voiceFeedback.classList.remove('active');
+                    }
                 }
             };
             
             recognition.onerror = (event) => {
                 console.error('语音识别错误:', event.error);
+                
+                if (event.error === 'not-allowed') {
+                    showPlaceholder('microphone-denied');
+                    toggleVoice();
+                    return;
+                }
+                
                 if (event.error === 'no-speech') {
                     return;
                 }
-                if (isVoiceOn) {
-                    recognition.start();
+                
+                if (isVoiceOn && event.error !== 'aborted') {
+                    setTimeout(() => {
+                        try {
+                            recognition.start();
+                        } catch (err) {
+                            console.error('重启语音识别失败:', err);
+                        }
+                    }, 1000);
                 }
             };
             
             recognition.onresult = (event) => {
+                let interimTranscript = '';
+                let finalTranscript = '';
+                
                 for (let i = event.resultIndex; i < event.results.length; i++) {
-                    const transcript = event.results[i][0].transcript.trim();
+                    const transcript = event.results[i][0].transcript;
+                    
                     if (event.results[i].isFinal) {
-                        console.log('识别到:', transcript);
-                        checkVoiceCommand(transcript);
+                        finalTranscript += transcript;
+                    } else {
+                        interimTranscript += transcript;
                     }
                 }
+                
+                if (interimTranscript) {
+                    showVoiceFeedback(`听到: ${interimTranscript}`);
+                }
+                
+                if (finalTranscript) {
+                    console.log('识别到:', finalTranscript);
+                    checkVoiceCommand(finalTranscript);
+                }
             };
+            
+            return true;
+        }
+        
+        function showVoiceFeedback(text) {
+            voiceFeedback.textContent = text;
+            voiceFeedback.classList.add('active');
+            
+            clearTimeout(window.voiceFeedbackTimeout);
+            window.voiceFeedbackTimeout = setTimeout(() => {
+                voiceFeedback.classList.remove('active');
+            }, 3000);
         }
         
         function checkVoiceCommand(text) {
             const lowerText = text.toLowerCase();
+            
             for (let command of voiceCommands) {
-                if (lowerText.includes(command)) {
+                if (lowerText.includes(command.toLowerCase()) || lowerText.includes(command)) {
+                    showVoiceFeedback(`✓ 收到指令: ${command}`);
+                    
                     if (command === '321' || command === '开始') {
-                        setTimeout(() => takePhoto(), 2000);
+                        setTimeout(() => {
+                            showCountdown(() => {
+                                takePhoto();
+                            });
+                        }, 500);
                     } else {
-                        takePhoto();
+                        setTimeout(() => {
+                            takePhoto();
+                        }, 300);
                     }
                     break;
                 }
             }
         }
         
-        function toggleVoice() {
+        async function toggleVoice() {
             if (isVoiceOn) {
                 recognition.stop();
                 voiceBtn.classList.remove('active');
                 voiceHint.classList.remove('active');
                 listeningIndicator.classList.remove('active');
+                voiceFeedback.classList.remove('active');
                 isVoiceOn = false;
-            } else {
-                if (!recognition) {
-                    initVoiceRecognition();
+                return;
+            }
+            
+            const hasPermission = await requestMicrophonePermission();
+            if (!hasPermission) {
+                return;
+            }
+            
+            if (!recognition) {
+                const success = initVoiceRecognition();
+                if (!success) {
+                    return;
                 }
-                if (recognition) {
-                    recognition.start();
-                }
+            }
+            
+            try {
+                recognition.start();
+            } catch (err) {
+                console.error('启动语音识别失败:', err);
+                alert('启动语音识别失败，请刷新页面重试');
             }
         }
         
