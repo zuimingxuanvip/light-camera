@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>补光相机</title>
+    <title>AI补光相机 - 智能美颜</title>
     <style>
         * {
             margin: 0;
@@ -25,35 +25,35 @@
             background: #2a2a2a;
             border-radius: 24px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-            padding: 24px;
+            padding: 20px;
             width: 100%;
-            max-width: 420px;
+            max-width: 480px;
         }
         
         .header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
         
         .header h1 {
-            font-size: 22px;
+            font-size: 20px;
             color: #fff;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
         
         .header p {
-            font-size: 13px;
+            font-size: 12px;
             color: #888;
         }
         
         .camera-container {
             position: relative;
             width: 100%;
-            height: 360px;
+            height: 400px;
             border-radius: 16px;
             overflow: hidden;
             background: #000;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
         
         #cameraPreview {
@@ -61,6 +61,15 @@
             height: 100%;
             object-fit: cover;
             display: none;
+        }
+        
+        #canvasPreview {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
         }
         
         .light-overlay {
@@ -85,9 +94,8 @@
             align-items: center;
             background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%);
             color: #888;
-            padding: 30px;
+            padding: 20px;
             text-align: center;
-            overflow-y: auto;
         }
         
         .camera-placeholder.hidden {
@@ -95,100 +103,48 @@
         }
         
         .camera-placeholder .icon {
-            font-size: 56px;
-            margin-bottom: 16px;
+            font-size: 48px;
+            margin-bottom: 12px;
         }
         
         .camera-placeholder h3 {
             color: #fff;
-            font-size: 18px;
+            font-size: 16px;
             margin-bottom: 8px;
         }
         
         .camera-placeholder p {
-            font-size: 13px;
+            font-size: 12px;
             line-height: 1.5;
-            margin-bottom: 6px;
         }
         
-        .camera-placeholder .tips {
-            font-size: 12px;
-            color: #666;
-            margin-top: 16px;
+        .loading-spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid #667eea;
+            width: 36px;
+            height: 36px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 16px;
         }
         
-        .permission-guide {
-            background: rgba(102, 126, 234, 0.1);
-            border: 1px solid rgba(102, 126, 234, 0.3);
-            border-radius: 12px;
-            padding: 16px;
-            margin: 16px 0;
-            text-align: left;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        
-        .permission-guide h4 {
-            color: #667eea;
-            font-size: 14px;
-            margin-bottom: 12px;
-        }
-        
-        .permission-guide .browser-info {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 12px;
-        }
-        
-        .permission-guide .browser-name {
-            color: #10b981;
-            font-weight: 600;
-            margin-bottom: 8px;
-            font-size: 13px;
-        }
-        
-        .permission-guide ol {
-            margin: 0;
-            padding-left: 20px;
-            font-size: 12px;
-            color: #aaa;
-            line-height: 1.8;
-        }
-        
-        .permission-guide li {
-            margin-bottom: 4px;
-        }
-        
-        .retry-btn {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-size: 14px;
-            cursor: pointer;
-            margin-top: 12px;
-            transition: all 0.2s ease;
-        }
-        
-        .retry-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         
         .enable-camera-btn {
             width: 100%;
-            padding: 16px;
+            padding: 14px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            border-radius: 14px;
-            font-size: 16px;
+            border-radius: 12px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s ease;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -200,15 +156,11 @@
             box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
         }
         
-        .enable-camera-btn.active {
-            background: #e74c3c;
-        }
-        
         .section-title {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             color: #fff;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -217,31 +169,31 @@
         .section-title::before {
             content: '';
             width: 4px;
-            height: 16px;
+            height: 14px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 2px;
         }
         
         .beauty-presets {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
         }
         
         .beauty-btn {
-            height: 60px;
+            height: 56px;
             border: 2px solid #444;
-            border-radius: 14px;
+            border-radius: 12px;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 13px;
+            font-size: 12px;
             color: #aaa;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            gap: 4px;
             background: #333;
             position: relative;
             overflow: hidden;
@@ -258,17 +210,10 @@
             transition: opacity 0.3s ease;
         }
         
-        .beauty-btn.ancient::before {
-            background: linear-gradient(135deg, rgba(139, 90, 43, 0.6) 0%, rgba(205, 133, 63, 0.4) 100%);
-        }
-        
-        .beauty-btn.modern::before {
-            background: linear-gradient(135deg, rgba(255, 182, 193, 0.6) 0%, rgba(255, 218, 233, 0.4) 100%);
-        }
-        
-        .beauty-btn.tech::before {
-            background: linear-gradient(135deg, rgba(0, 128, 255, 0.6) 0%, rgba(138, 43, 226, 0.4) 100%);
-        }
+        .beauty-btn.none::before { background: linear-gradient(135deg, #888 0%, #666 100%); }
+        .beauty-btn.natural::before { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); }
+        .beauty-btn.glamour::before { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
+        .beauty-btn.ai::before { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
         
         .beauty-btn:hover {
             border-color: #667eea;
@@ -285,7 +230,7 @@
         }
         
         .beauty-icon {
-            font-size: 24px;
+            font-size: 20px;
             z-index: 1;
         }
         
@@ -294,26 +239,81 @@
             z-index: 1;
         }
         
+        .ai-sliders {
+            background: #333;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .slider-row {
+            margin-bottom: 12px;
+        }
+        
+        .slider-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        
+        .slider-label span {
+            font-size: 12px;
+            color: #aaa;
+        }
+        
+        .slider-value {
+            font-size: 12px;
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        .beauty-slider {
+            width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #555;
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+        }
+        
+        .beauty-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+        }
+        
         .color-presets {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 8px;
+            margin-bottom: 16px;
         }
         
         .preset-btn {
-            height: 48px;
+            height: 40px;
             border: 2px solid #444;
-            border-radius: 12px;
+            border-radius: 10px;
             cursor: pointer;
             transition: all 0.2s ease;
-            font-size: 11px;
+            font-size: 10px;
             color: #aaa;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 4px;
+            gap: 2px;
             background: #333;
         }
         
@@ -328,10 +328,9 @@
         }
         
         .preset-color {
-            width: 22px;
-            height: 22px;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
-            border: 2px solid rgba(255,255,255,0.3);
         }
         
         .warm { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); }
@@ -340,16 +339,16 @@
         .sunset { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
         
         .brightness-control {
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
         
         .brightness-slider {
             width: 100%;
-            height: 8px;
+            height: 6px;
             -webkit-appearance: none;
             appearance: none;
             background: linear-gradient(90deg, #333 0%, #667eea 50%, #764ba2 100%);
-            border-radius: 4px;
+            border-radius: 3px;
             outline: none;
             cursor: pointer;
         }
@@ -357,91 +356,39 @@
         .brightness-slider::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 22px;
-            height: 22px;
+            width: 20px;
+            height: 20px;
             background: white;
             border-radius: 50%;
             cursor: pointer;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-            transition: transform 0.2s ease;
-        }
-        
-        .brightness-slider::-webkit-slider-thumb:hover {
-            transform: scale(1.1);
         }
         
         .brightness-value {
             text-align: right;
-            font-size: 13px;
+            font-size: 12px;
             color: #888;
-            margin-top: 8px;
-        }
-        
-        .color-picker-section {
-            margin-bottom: 20px;
-        }
-        
-        .color-picker-row {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-        
-        .color-picker {
-            width: 54px;
-            height: 54px;
-            border: 2px solid #444;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            background: none;
-            padding: 0;
-        }
-        
-        .color-picker:hover {
-            border-color: #667eea;
-            transform: scale(1.05);
-        }
-        
-        .color-input {
-            flex: 1;
-            padding: 12px 14px;
-            border: 2px solid #444;
-            border-radius: 12px;
-            font-size: 14px;
-            color: #fff;
-            outline: none;
-            transition: border-color 0.2s ease;
-            background: #333;
-        }
-        
-        .color-input:focus {
-            border-color: #667eea;
-        }
-        
-        .color-input::placeholder {
-            color: #666;
+            margin-top: 6px;
         }
         
         .action-buttons {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-bottom: 16px;
+            gap: 10px;
         }
         
         .action-btn {
-            padding: 14px;
+            padding: 12px;
             border: none;
-            border-radius: 14px;
-            font-size: 15px;
+            border-radius: 12px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 6px;
         }
         
         .action-btn:hover {
@@ -461,12 +408,10 @@
         .voice-btn {
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: white;
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
         }
         
         .voice-btn.active {
             background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
             animation: pulse 1.5s ease-in-out infinite;
         }
         
@@ -478,19 +423,14 @@
         .capture-btn {
             background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
             color: white;
-            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
-        }
-        
-        .capture-btn:hover {
-            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.5);
         }
         
         .voice-hint {
             background: rgba(16, 185, 129, 0.1);
             border: 1px solid rgba(16, 185, 129, 0.3);
-            border-radius: 12px;
-            padding: 12px 16px;
-            margin-bottom: 16px;
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 12px;
             display: none;
         }
         
@@ -506,8 +446,8 @@
         
         .voice-hint h4 {
             color: #10b981;
-            font-size: 14px;
-            margin-bottom: 8px;
+            font-size: 13px;
+            margin-bottom: 6px;
             display: flex;
             align-items: center;
             gap: 6px;
@@ -515,138 +455,44 @@
         
         .voice-hint ul {
             list-style: none;
-            font-size: 13px;
+            font-size: 12px;
             color: #aaa;
         }
         
         .voice-hint li {
-            padding: 4px 0;
+            padding: 2px 0;
+        }
+        
+        .voice-hint li::before {
+            content: '🎯 ';
+        }
+        
+        .status-bar {
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
             gap: 8px;
         }
         
-        .voice-hint li::before {
-            content: '🎯';
-        }
-        
-        .listening-indicator {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 14px;
-            display: none;
-            align-items: center;
-            gap: 10px;
-            z-index: 10;
-        }
-        
-        .listening-indicator.active {
-            display: flex;
-        }
-        
-        .listening-dot {
-            width: 10px;
-            height: 10px;
-            background: #f59e0b;
+        .status-dot {
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
-            animation: blink 0.8s ease-in-out infinite;
+            background: #10b981;
+            animation: pulse-dot 2s ease-in-out infinite;
         }
         
-        @keyframes blink {
+        @keyframes pulse-dot {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
+            50% { opacity: 0.5; }
         }
         
-        .voice-feedback {
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
-            color: #10b981;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 500;
-            display: none;
-            z-index: 20;
-            text-align: center;
-            max-width: 90%;
-            word-wrap: break-word;
-        }
-        
-        .voice-feedback.active {
-            display: block;
-            animation: slideDown 0.3s ease;
-        }
-        
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateX(-50%) translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(-50%) translateY(0);
-            }
-        }
-        
-        .footer {
-            text-align: center;
-            margin-top: 16px;
-            font-size: 11px;
-            color: #555;
-        }
-        
-        .loading-spinner {
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top: 3px solid #667eea;
-            width: 36px;
-            height: 36px;
-            animation: spin 1s linear infinite;
-            margin-bottom: 16px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .beauty-style-indicator {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 6px 12px;
-            border-radius: 8px;
+        .status-text {
             font-size: 12px;
-            font-weight: 600;
-            display: none;
-            z-index: 20;
-        }
-        
-        .beauty-style-indicator.active {
-            display: block;
-            animation: slideIn 0.3s ease;
-        }
-        
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            color: #aaa;
         }
         
         .countdown-display {
@@ -654,7 +500,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 120px;
+            font-size: 100px;
             font-weight: 800;
             color: #f59e0b;
             text-shadow: 0 0 30px rgba(245, 158, 11, 0.8);
@@ -677,59 +523,85 @@
 <body>
     <div class="app-container">
         <div class="header">
-            <h1>✨ 补光相机</h1>
-            <p>智能美颜 · 专业补光</p>
+            <h1>✨ AI补光相机</h1>
+            <p>智能美颜 · 实时滤镜</p>
         </div>
         
         <div class="camera-container">
             <video id="cameraPreview" autoplay playsinline></video>
+            <canvas id="canvasPreview"></canvas>
             <div class="light-overlay" id="lightOverlay"></div>
-            <div class="listening-indicator" id="listeningIndicator">
-                <div class="listening-dot"></div>
-                <span>正在听...</span>
-            </div>
-            <div class="voice-feedback" id="voiceFeedback"></div>
-            <div class="beauty-style-indicator" id="beautyStyleIndicator"></div>
             <div class="countdown-display" id="countdownDisplay"></div>
             <div class="camera-placeholder" id="cameraPlaceholder">
-                <span class="icon">📷</span>
-                <h3>开启相机体验</h3>
-                <p>点击下方按钮</p>
-                <p>授权相机权限开始自拍</p>
-                <p class="tips">建议在光线良好的环境使用效果更佳</p>
+                <div class="loading-spinner"></div>
+                <h3>正在加载AI模型...</h3>
+                <p>请稍候</p>
             </div>
         </div>
         
         <button class="enable-camera-btn" id="enableCameraBtn">
             <span>📸</span>
-            <span>开启相机</span>
+            <span id="cameraBtnText">开启AI相机</span>
         </button>
         
-        <div class="section-title">🎨 美颜风格</div>
+        <div class="status-bar" id="statusBar" style="display: none;">
+            <div class="status-dot"></div>
+            <span class="status-text">AI美颜运行中</span>
+        </div>
+        
+        <div class="section-title">🎨 AI美颜模式</div>
         <div class="beauty-presets">
-            <button class="beauty-btn ancient" data-style="ancient">
-                <span class="beauty-icon">🏯</span>
-                <span class="beauty-name">古代风</span>
+            <button class="beauty-btn none" data-style="none">
+                <span class="beauty-icon">🚫</span>
+                <span class="beauty-name">原图</span>
             </button>
-            <button class="beauty-btn modern active" data-style="modern">
+            <button class="beauty-btn natural active" data-style="natural">
+                <span class="beauty-icon">🌸</span>
+                <span class="beauty-name">自然</span>
+            </button>
+            <button class="beauty-btn glamour" data-style="glamour">
                 <span class="beauty-icon">💄</span>
-                <span class="beauty-name">现代风</span>
+                <span class="beauty-name">精致</span>
             </button>
-            <button class="beauty-btn tech" data-style="tech">
+            <button class="beauty-btn ai" data-style="ai">
                 <span class="beauty-icon">🤖</span>
-                <span class="beauty-name">科技风</span>
+                <span class="beauty-name">AI美颜</span>
             </button>
         </div>
         
-        <div class="voice-hint" id="voiceHint">
-            <h4>🎤 语音控制已开启</h4>
-            <ul>
-                <li>说"拍照"或"茄子"即可自拍</li>
-                <li>说"321"或"开始"倒计时3秒拍照</li>
-            </ul>
+        <div class="section-title">⚙️ 精细调节</div>
+        <div class="ai-sliders">
+            <div class="slider-row">
+                <div class="slider-label">
+                    <span>👋 瘦脸</span>
+                    <span class="slider-value" id="faceSlimValue">0</span>
+                </div>
+                <input type="range" class="beauty-slider" id="faceSlimSlider" min="0" max="100" value="0">
+            </div>
+            <div class="slider-row">
+                <div class="slider-label">
+                    <span>👁️ 大眼</span>
+                    <span class="slider-value" id="eyeEnlargeValue">0</span>
+                </div>
+                <input type="range" class="beauty-slider" id="eyeEnlargeSlider" min="0" max="100" value="0">
+            </div>
+            <div class="slider-row">
+                <div class="slider-label">
+                    <span>✨ 磨皮</span>
+                    <span class="slider-value" id="smoothValue">50</span>
+                </div>
+                <input type="range" class="beauty-slider" id="smoothSlider" min="0" max="100" value="50">
+            </div>
+            <div class="slider-row">
+                <div class="slider-label">
+                    <span>💡 美白</span>
+                    <span class="slider-value" id="whiteningValue">30</span>
+                </div>
+                <input type="range" class="beauty-slider" id="whiteningSlider" min="0" max="100" value="30">
+            </div>
         </div>
         
-        <div class="section-title">色温选择</div>
+        <div class="section-title">💡 补光色温</div>
         <div class="color-presets">
             <button class="preset-btn active" data-color="warm">
                 <div class="preset-color warm"></div>
@@ -741,7 +613,7 @@
             </button>
             <button class="preset-btn" data-color="natural">
                 <div class="preset-color natural"></div>
-                <span>自然光</span>
+                <span>自然</span>
             </button>
             <button class="preset-btn" data-color="sunset">
                 <div class="preset-color sunset"></div>
@@ -749,23 +621,23 @@
             </button>
         </div>
         
-        <div class="section-title">亮度调节</div>
+        <div class="section-title">🔆 亮度调节</div>
         <div class="brightness-control">
             <input type="range" class="brightness-slider" id="brightnessSlider" min="10" max="100" value="60">
             <div class="brightness-value" id="brightnessValue">亮度: 60%</div>
         </div>
         
-        <div class="section-title">自定义颜色</div>
-        <div class="color-picker-section">
-            <div class="color-picker-row">
-                <input type="color" class="color-picker" id="colorPicker" value="#FFD700">
-                <input type="text" class="color-input" id="colorInput" placeholder="输入颜色代码 (如: #FF6B6B)">
-            </div>
+        <div class="voice-hint" id="voiceHint">
+            <h4>🎤 语音控制已开启</h4>
+            <ul>
+                <li>说"拍照"或"茄子"即可自拍</li>
+                <li>说"开始"或"321"倒计时拍照</li>
+            </ul>
         </div>
         
         <div class="action-buttons">
             <button class="action-btn toggle-light-btn" id="toggleLightBtn">
-                💡 补光开
+                💡 补光
             </button>
             <button class="action-btn voice-btn" id="voiceBtn">
                 🎤 语音
@@ -774,31 +646,34 @@
                 📷 拍照
             </button>
         </div>
-        
-        <div class="footer">
-            智能美颜 · 完美补光 · 专业自拍
-        </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/face_mesh.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
+    
     <script>
         const cameraPreview = document.getElementById('cameraPreview');
+        const canvasPreview = document.getElementById('canvasPreview');
         const lightOverlay = document.getElementById('lightOverlay');
         const cameraPlaceholder = document.getElementById('cameraPlaceholder');
         const enableCameraBtn = document.getElementById('enableCameraBtn');
+        const cameraBtnText = document.getElementById('cameraBtnText');
+        const statusBar = document.getElementById('statusBar');
         const brightnessSlider = document.getElementById('brightnessSlider');
         const brightnessValue = document.getElementById('brightnessValue');
-        const colorPicker = document.getElementById('colorPicker');
-        const colorInput = document.getElementById('colorInput');
         const toggleLightBtn = document.getElementById('toggleLightBtn');
         const captureBtn = document.getElementById('captureBtn');
         const presetBtns = document.querySelectorAll('.preset-btn');
         const beautyBtns = document.querySelectorAll('.beauty-btn');
         const voiceBtn = document.getElementById('voiceBtn');
         const voiceHint = document.getElementById('voiceHint');
-        const listeningIndicator = document.getElementById('listeningIndicator');
-        const beautyStyleIndicator = document.getElementById('beautyStyleIndicator');
-        const voiceFeedback = document.getElementById('voiceFeedback');
         const countdownDisplay = document.getElementById('countdownDisplay');
+        
+        const faceSlimSlider = document.getElementById('faceSlimSlider');
+        const eyeEnlargeSlider = document.getElementById('eyeEnlargeSlider');
+        const smoothSlider = document.getElementById('smoothSlider');
+        const whiteningSlider = document.getElementById('whiteningSlider');
         
         const presetColors = {
             warm: { gradient: 'radial-gradient(circle at center, rgba(255, 236, 210, 0.8) 0%, rgba(252, 182, 159, 0.6) 50%, rgba(252, 182, 159, 0.2) 100%)', hex: '#FFB69F' },
@@ -807,368 +682,147 @@
             sunset: { gradient: 'radial-gradient(circle at center, rgba(255, 154, 158, 0.8) 0%, rgba(254, 207, 239, 0.6) 50%, rgba(254, 207, 239, 0.2) 100%)', hex: '#FF9A9E' }
         };
         
-        const beautyStyles = {
-            ancient: {
-                name: '古代风',
-                icon: '🏯',
-                filter: 'sepia(40%) saturate(80%) brightness(95%) contrast(90%)',
-                canvasFilter: {
-                    sepia: 0.4,
-                    saturate: 0.8,
-                    brightness: 0.95,
-                    contrast: 0.9
-                }
-            },
-            modern: {
-                name: '现代风',
-                icon: '💄',
-                filter: 'saturate(120%) contrast(110%) brightness(105%)',
-                canvasFilter: {
-                    sepia: 0,
-                    saturate: 1.2,
-                    brightness: 1.05,
-                    contrast: 1.1
-                }
-            },
-            tech: {
-                name: '科技风',
-                icon: '🤖',
-                filter: 'saturate(130%) contrast(130%) hue-rotate(20deg) brightness(90%)',
-                canvasFilter: {
-                    sepia: 0,
-                    saturate: 1.3,
-                    brightness: 0.9,
-                    contrast: 1.3,
-                    hueRotate: 20
-                }
-            }
+        const beautyPresets = {
+            none: { smooth: 0, whitening: 0, faceSlim: 0, eyeEnlarge: 0 },
+            natural: { smooth: 50, whitening: 30, faceSlim: 20, eyeEnlarge: 15 },
+            glamour: { smooth: 70, whitening: 50, faceSlim: 40, eyeEnlarge: 30 },
+            ai: { smooth: 60, whitening: 40, faceSlim: 30, eyeEnlarge: 25 }
         };
         
         let currentPreset = 'warm';
-        let currentBeautyStyle = 'modern';
+        let currentBeautyStyle = 'natural';
         let currentBrightness = 60;
         let isLightOn = true;
         let isCameraOn = false;
         let isVoiceOn = false;
         let stream = null;
         let recognition = null;
+        let faceMesh = null;
+        let ctx = null;
+        let animationId = null;
+        let landmarkPoints = null;
         
         const voiceCommands = ['拍照', '茄子', 'cheese', '321', '开始', '咔嚓', '拍一张', '自拍'];
         
-        function getBrowserInfo() {
-            const ua = navigator.userAgent.toLowerCase();
-            const browser = {
-                isChrome: ua.includes('chrome'),
-                isFirefox: ua.includes('firefox'),
-                isSafari: ua.includes('safari') && !ua.includes('chrome'),
-                isEdge: ua.includes('edg'),
-                isMobile: /iphone|ipad|android|windows phone/.test(ua),
-                os: ''
-            };
-            
-            if (ua.includes('mac os')) browser.os = 'Mac';
-            else if (ua.includes('windows')) browser.os = 'Windows';
-            else if (ua.includes('android')) browser.os = 'Android';
-            else if (ua.includes('iphone') || ua.includes('ipad')) browser.os = 'iOS';
-            
-            return browser;
-        }
-        
-        function getMicrophoneGuideHTML() {
-            const browser = getBrowserInfo();
-            let guideHTML = '<div class="permission-guide"><h4>🎤 开启麦克风权限方法</h4>';
-            
-            if (browser.isChrome || browser.isEdge) {
-                if (browser.os === 'Mac' || browser.os === 'Windows') {
-                    guideHTML += `
-                        <div class="browser-info">
-                            <div class="browser-name">Chrome / Edge 浏览器</div>
-                            <ol>
-                                <li>点击浏览器地址栏左侧的 🔒 锁定图标</li>
-                                <li>找到"麦克风"设置</li>
-                                <li>选择"允许"或"在此网站上始终允许"</li>
-                                <li>刷新此页面重试</li>
-                            </ol>
-                        </div>
-                    `;
-                } else if (browser.os === 'Android' || browser.os === 'iOS') {
-                    guideHTML += `
-                        <div class="browser-info">
-                            <div class="browser-name">Chrome 移动版</div>
-                            <ol>
-                                <li>打开手机"设置"</li>
-                                <li>找到"应用" → "Chrome"</li>
-                                <li>点击"权限" → "麦克风"</li>
-                                <li>选择"允许"</li>
-                                <li>回到浏览器刷新页面</li>
-                            </ol>
-                        </div>
-                    `;
-                }
-            } else if (browser.isSafari) {
-                guideHTML += `
-                    <div class="browser-info">
-                        <div class="browser-name">Safari 浏览器</div>
-                        <ol>
-                            <li>点击左上角"Safari"菜单</li>
-                            <li>选择"网站设置"</li>
-                            <li>找到"麦克风"权限</li>
-                            <li>选择"允许"</li>
-                        </ol>
-                    </div>
-                `;
-            } else if (browser.isFirefox) {
-                guideHTML += `
-                    <div class="browser-info">
-                        <div class="browser-name">Firefox 浏览器</div>
-                        <ol>
-                            <li>点击地址栏左侧的 🔒 或 ℹ️ 图标</li>
-                            <li>点击"连接安全"旁的箭头</li>
-                            <li>点击"更多信息" → "权限"</li>
-                            <li>找到"麦克风"并选择"允许"</li>
-                        </ol>
-                    </div>
-                `;
-            } else {
-                guideHTML += `
-                    <div class="browser-info">
-                        <div class="browser-name">通用方法</div>
-                        <ol>
-                            <li>检查浏览器设置中的隐私/权限选项</li>
-                            <li>确保麦克风权限已开启</li>
-                            <li>刷新页面重试</li>
-                        </ol>
-                    </div>
-                `;
-            }
-            
-            guideHTML += '</div>';
-            return guideHTML;
-        }
-        
-        function getPermissionGuideHTML() {
-            const browser = getBrowserInfo();
-            let guideHTML = '<div class="permission-guide"><h4>🔧 开启相机权限方法</h4>';
-            
-            if (browser.isChrome || browser.isEdge) {
-                if (browser.os === 'Mac' || browser.os === 'Windows') {
-                    guideHTML += `
-                        <div class="browser-info">
-                            <div class="browser-name">Chrome / Edge 浏览器</div>
-                            <ol>
-                                <li>点击浏览器地址栏左侧的 🔒 锁定图标</li>
-                                <li>找到"相机"设置</li>
-                                <li>选择"允许"或"在此网站上始终允许"</li>
-                                <li>刷新此页面重试</li>
-                            </ol>
-                        </div>
-                    `;
-                } else if (browser.os === 'Android' || browser.os === 'iOS') {
-                    guideHTML += `
-                        <div class="browser-info">
-                            <div class="browser-name">Chrome 移动版</div>
-                            <ol>
-                                <li>打开手机"设置"</li>
-                                <li>找到"应用" → "Chrome"</li>
-                                <li>点击"权限" → "相机"</li>
-                                <li>选择"允许"</li>
-                                <li>回到浏览器刷新页面</li>
-                            </ol>
-                        </div>
-                    `;
-                }
-            } else if (browser.isSafari) {
-                guideHTML += `
-                    <div class="browser-info">
-                        <div class="browser-name">Safari 浏览器</div>
-                        <ol>
-                            <li>点击左上角"Safari"菜单</li>
-                            <li>选择"设置为此网站的设置"</li>
-                            <li>或打开"系统偏好设置" → "安全性与隐私"</li>
-                            <li>在"相机"选项中找到此网站</li>
-                            <li>勾选允许后刷新页面</li>
-                        </ol>
-                    </div>
-                `;
-            } else if (browser.isFirefox) {
-                guideHTML += `
-                    <div class="browser-info">
-                        <div class="browser-name">Firefox 浏览器</div>
-                        <ol>
-                            <li>点击地址栏左侧的 🔒 或 ℹ️ 图标</li>
-                            <li>点击"连接安全"旁的箭头</li>
-                            <li>点击"更多信息" → "权限"</li>
-                            <li>找到"相机"并选择"允许"</li>
-                            <li>刷新页面</li>
-                        </ol>
-                    </div>
-                `;
-            } else {
-                guideHTML += `
-                    <div class="browser-info">
-                        <div class="browser-name">通用方法</div>
-                        <ol>
-                            <li>检查浏览器设置中的隐私/权限选项</li>
-                            <li>确保相机权限已开启</li>
-                            <li>刷新页面重试</li>
-                        </ol>
-                    </div>
-                `;
-            }
-            
-            if (browser.os === 'iOS' && browser.isSafari) {
-                guideHTML += `
-                    <div class="browser-info">
-                        <div class="browser-name">iOS Safari 特殊设置</div>
-                        <ol>
-                            <li>打开"设置" → "Safari"</li>
-                            <li>找到"相机"设置</li>
-                            <li>选择"允许"或"询问"</li>
-                            <li>或在网站弹窗中选择"允许"</li>
-                        </ol>
-                    </div>
-                `;
-            }
-            
-            guideHTML += '</div>';
-            return guideHTML;
-        }
-        
-        function showPlaceholder(mode, customMessage = '') {
-            if (mode === 'welcome') {
-                cameraPlaceholder.innerHTML = `
-                    <span class="icon">📷</span>
-                    <h3>开启相机体验</h3>
-                    <p>点击下方按钮</p>
-                    <p>授权相机权限开始自拍</p>
-                    <p class="tips">建议在光线良好的环境使用效果更佳</p>
-                `;
-            } else if (mode === 'loading') {
-                cameraPlaceholder.innerHTML = `
-                    <div class="loading-spinner"></div>
-                    <h3>正在启动...</h3>
-                    <p>请稍候</p>
-                `;
-            } else if (mode === 'denied') {
-                cameraPlaceholder.innerHTML = `
-                    <span class="icon">🚫</span>
-                    <h3>相机权限被拒绝</h3>
-                    <p>请按照以下指南开启权限</p>
-                    ${getPermissionGuideHTML()}
-                    <button class="retry-btn" onclick="location.reload()">🔄 刷新页面重试</button>
-                `;
-            } else if (mode === 'error') {
-                cameraPlaceholder.innerHTML = `
-                    <span class="icon">❌</span>
-                    <h3>无法访问相机</h3>
-                    <p>请确保您的设备有可用的摄像头</p>
-                    <p>并已授予相机权限</p>
-                    ${getPermissionGuideHTML()}
-                    <button class="retry-btn" onclick="location.reload()">🔄 刷新页面重试</button>
-                `;
-            } else if (mode === 'microphone-denied') {
-                cameraPlaceholder.innerHTML = `
-                    <span class="icon">🎤</span>
-                    <h3>麦克风权限被拒绝</h3>
-                    <p>请按照以下指南开启权限</p>
-                    ${getMicrophoneGuideHTML()}
-                    <button class="retry-btn" onclick="location.reload()">🔄 刷新页面重试</button>
-                `;
-            } else if (mode === 'microphone-error') {
-                cameraPlaceholder.innerHTML = `
-                    <span class="icon">🎤</span>
-                    <h3>无法访问麦克风</h3>
-                    <p>${customMessage}</p>
-                    ${getMicrophoneGuideHTML()}
-                    <button class="retry-btn" onclick="location.reload()">🔄 刷新页面重试</button>
-                `;
-            }
-            cameraPlaceholder.classList.remove('hidden');
-        }
-        
-        async function enableCamera() {
-            showPlaceholder('loading');
-            
+        async function initFaceMesh() {
             try {
-                stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'user', width: 1280, height: 720 },
-                    audio: false
+                faceMesh = new FaceMesh({
+                    locateFile: (file) => {
+                        return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/${file}`;
+                    }
                 });
                 
-                cameraPreview.srcObject = stream;
-                cameraPreview.style.display = 'block';
-                cameraPreview.style.filter = beautyStyles[currentBeautyStyle].filter;
-                cameraPlaceholder.classList.add('hidden');
-                enableCameraBtn.innerHTML = '<span>⏸️</span><span>关闭相机</span>';
-                enableCameraBtn.classList.add('active');
-                isCameraOn = true;
-                updateLightOverlay();
-                updateBeautyIndicator();
-            } catch (err) {
-                console.error('相机错误:', err);
+                faceMesh.setOptions({
+                    maxNumFaces: 1,
+                    refineLandmarks: true,
+                    minDetectionConfidence: 0.5,
+                    minTrackingConfidence: 0.5
+                });
                 
-                if (err.name === 'NotAllowedError') {
-                    showPlaceholder('denied');
-                } else if (err.name === 'NotFoundError') {
-                    showPlaceholder('error');
-                } else {
-                    showPlaceholder('error');
+                faceMesh.onResults(onFaceMeshResults);
+                
+                await faceMesh.initialize();
+                
+                console.log('Face Mesh 初始化成功');
+                cameraPlaceholder.innerHTML = `
+                    <span class="icon">📷</span>
+                    <h3>AI模型已就绪</h3>
+                    <p>点击下方按钮开启相机</p>
+                    <p>开始智能美颜体验</p>
+                `;
+                
+            } catch (error) {
+                console.error('Face Mesh 初始化失败:', error);
+                cameraPlaceholder.innerHTML = `
+                    <span class="icon">⚠️</span>
+                    <h3>AI模型加载失败</h3>
+                    <p>请检查网络连接后刷新页面</p>
+                `;
+            }
+        }
+        
+        function onFaceMeshResults(results) {
+            if (!canvasPreview || !ctx) return;
+            
+            canvasPreview.width = cameraPreview.videoWidth;
+            canvasPreview.height = cameraPreview.videoHeight;
+            
+            ctx.save();
+            ctx.clearRect(0, 0, canvasPreview.width, canvasPreview.height);
+            
+            if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+                landmarkPoints = results.multiFaceLandmarks[0];
+                
+                if (currentBeautyStyle !== 'none') {
+                    applyAdvancedBeauty(ctx, cameraPreview.videoWidth, cameraPreview.videoHeight, results.multiFaceLandmarks[0]);
                 }
-                
-                enableCameraBtn.innerHTML = '<span>🔄</span><span>重试</span>';
-            }
-        }
-        
-        function disableCamera() {
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-                stream = null;
-            }
-            cameraPreview.srcObject = null;
-            cameraPreview.style.display = 'none';
-            cameraPreview.style.filter = 'none';
-            showPlaceholder('welcome');
-            enableCameraBtn.innerHTML = '<span>📸</span><span>开启相机</span>';
-            enableCameraBtn.classList.remove('active');
-            beautyStyleIndicator.classList.remove('active');
-            isCameraOn = false;
-        }
-        
-        function updateBeautyIndicator() {
-            const style = beautyStyles[currentBeautyStyle];
-            beautyStyleIndicator.textContent = `${style.icon} ${style.name}`;
-            beautyStyleIndicator.classList.add('active');
-        }
-        
-        function updateLightOverlay() {
-            if (!isLightOn) {
-                lightOverlay.style.background = 'transparent';
-                return;
             }
             
-            const alpha = currentBrightness / 100;
+            ctx.restore();
+        }
+        
+        function applyAdvancedBeauty(ctx, width, height, landmarks) {
+            const smoothingStrength = parseInt(smoothSlider.value) / 100;
+            const whiteningStrength = parseInt(whiteningSlider.value) / 100;
+            const faceSlimStrength = parseInt(faceSlimSlider.value) / 100;
+            const eyeEnlargeStrength = parseInt(eyeEnlargeSlider.value) / 100;
             
-            if (currentPreset) {
-                const preset = presetColors[currentPreset];
-                const r = parseInt(preset.hex.slice(1, 3), 16);
-                const g = parseInt(preset.hex.slice(3, 5), 16);
-                const b = parseInt(preset.hex.slice(5, 7), 16);
-                
-                const gradient = `radial-gradient(circle at center, rgba(${r}, ${g}, ${b}, ${alpha * 0.9}) 0%, rgba(${r}, ${g}, ${b}, ${alpha * 0.6}) 40%, rgba(${r}, ${g}, ${b}, ${alpha * 0.2}) 70%, rgba(${r}, ${g}, ${b}, 0) 100%)`;
-                lightOverlay.style.background = gradient;
-            } else {
-                const hex = colorPicker.value;
-                const r = parseInt(hex.slice(1, 3), 16);
-                const g = parseInt(hex.slice(3, 5), 16);
-                const b = parseInt(hex.slice(5, 7), 16);
-                
-                const gradient = `radial-gradient(circle at center, rgba(${r}, ${g}, ${b}, ${alpha * 0.9}) 0%, rgba(${r}, ${g}, ${b}, ${alpha * 0.6}) 40%, rgba(${r}, ${g}, ${b}, ${alpha * 0.2}) 70%, rgba(${r}, ${g}, ${b}, 0) 100%)`;
-                lightOverlay.style.background = gradient;
+            if (smoothingStrength > 0 || whiteningStrength > 0) {
+                const imageData = ctx.getImageData(0, 0, width, height);
+                const smoothedData = applySkinSmoothing(imageData, smoothingStrength);
+                const whitenedData = applySkinWhitening(smoothedData, whiteningStrength);
+                ctx.putImageData(whitenedData, 0, 0);
+            }
+            
+            if (faceSlimStrength > 0 || eyeEnlargeStrength > 0) {
+                applyFaceWarping(ctx, width, height, landmarks, faceSlimStrength, eyeEnlargeStrength);
             }
         }
         
-        function applyBeautyFilter(ctx, width, height, imageData) {
-            const style = beautyStyles[currentBeautyStyle].canvasFilter;
+        function applySkinSmoothing(imageData, strength) {
+            const data = imageData.data;
+            const width = imageData.width;
+            const height = imageData.height;
+            const blurred = new Uint8ClampedArray(data.length);
+            
+            const kernelSize = Math.floor(5 + strength * 10);
+            const halfKernel = Math.floor(kernelSize / 2);
+            
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    let r = 0, g = 0, b = 0, count = 0;
+                    
+                    for (let ky = -halfKernel; ky <= halfKernel; ky++) {
+                        for (let kx = -halfKernel; kx <= halfKernel; kx++) {
+                            const nx = Math.min(Math.max(x + kx, 0), width - 1);
+                            const ny = Math.min(Math.max(y + ky, 0), height - 1);
+                            const idx = (ny * width + nx) * 4;
+                            
+                            r += data[idx];
+                            g += data[idx + 1];
+                            b += data[idx + 2];
+                            count++;
+                        }
+                    }
+                    
+                    const idx = (y * width + x) * 4;
+                    blurred[idx] = r / count;
+                    blurred[idx + 1] = g / count;
+                    blurred[idx + 2] = b / count;
+                    blurred[idx + 3] = data[idx + 3];
+                }
+            }
+            
+            for (let i = 0; i < data.length; i += 4) {
+                data[i] = data[i] * (1 - strength) + blurred[i] * strength;
+                data[i + 1] = data[i + 1] * (1 - strength) + blurred[i + 1] * strength;
+                data[i + 2] = data[i + 2] * (1 - strength) + blurred[i + 2] * strength;
+            }
+            
+            return imageData;
+        }
+        
+        function applySkinWhitening(imageData, strength) {
             const data = imageData.data;
             
             for (let i = 0; i < data.length; i += 4) {
@@ -1176,39 +830,13 @@
                 let g = data[i + 1];
                 let b = data[i + 2];
                 
-                r = r * style.contrast;
-                g = g * style.contrast;
-                b = b * style.contrast;
+                const hsl = rgbToHsl(r, g, b);
+                hsl[2] = Math.min(hsl[2] + strength * 0.15, 1);
+                const rgb = hslToRgb(hsl[0], hsl[1], hsl[2]);
                 
-                if (style.hueRotate) {
-                    const hsl = rgbToHsl(r, g, b);
-                    hsl[0] = (hsl[0] + style.hueRotate / 360) % 1;
-                    const rgb = hslToRgb(hsl[0], hsl[1], hsl[2]);
-                    r = rgb[0];
-                    g = rgb[1];
-                    b = rgb[2];
-                }
-                
-                if (style.sepia) {
-                    const tr = r * (1 - style.sepia) + r * 0.393 + g * 0.769 + b * 0.189;
-                    const tg = r * (1 - style.sepia) + r * 0.349 + g * 0.686 + b * 0.168;
-                    const tb = r * (1 - style.sepia) + r * 0.272 + g * 0.534 + b * 0.131;
-                    r = tr * style.sepia + r * (1 - style.sepia);
-                    g = tg * style.sepia + g * (1 - style.sepia);
-                    b = tb * style.sepia + b * (1 - style.sepia);
-                }
-                
-                r = r * style.saturate;
-                g = g * style.saturate;
-                b = b * style.saturate;
-                
-                r = r * style.brightness;
-                g = g * style.brightness;
-                b = b * style.brightness;
-                
-                data[i] = Math.min(255, Math.max(0, r));
-                data[i + 1] = Math.min(255, Math.max(0, g));
-                data[i + 2] = Math.min(255, Math.max(0, b));
+                data[i] = rgb[0];
+                data[i + 1] = rgb[1];
+                data[i + 2] = rgb[2];
             }
             
             return imageData;
@@ -1265,6 +893,167 @@
             return [r * 255, g * 255, b * 255];
         }
         
+        function applyFaceWarping(ctx, width, height, landmarks, faceSlimStrength, eyeEnlargeStrength) {
+            const faceCenter = {
+                x: landmarks[168].x * width,
+                y: landmarks[168].y * height
+            };
+            
+            const faceWidth = Math.abs(landmarks[234].x - landmarks[454].x) * width;
+            const faceHeight = Math.abs(landmarks[10].y - landmarks[152].y) * height;
+            
+            ctx.save();
+            ctx.globalCompositeOperation = 'multiply';
+            
+            if (faceSlimStrength > 0) {
+                const slimFactor = 1 - faceSlimStrength * 0.15;
+                
+                ctx.filter = `brightness(${0.9 + (1 - slimFactor) * 0.3})`;
+                ctx.drawImage(cameraPreview, 0, 0, width, height);
+            }
+            
+            if (eyeEnlargeStrength > 0) {
+                const leftEye = {
+                    x: landmarks[33].x * width,
+                    y: landmarks[33].y * height
+                };
+                const rightEye = {
+                    x: landmarks[263].x * width,
+                    y: landmarks[263].y * height
+                };
+                
+                const leftEyeSize = Math.sqrt(
+                    Math.pow(landmarks[133].x - landmarks[33].x, 2) +
+                    Math.pow(landmarks[133].y - landmarks[33].y, 2)
+                ) * width * (1 + eyeEnlargeStrength * 0.3);
+                
+                const rightEyeSize = Math.sqrt(
+                    Math.pow(landmarks[362].x - landmarks[263].x, 2) +
+                    Math.pow(landmarks[362].y - landmarks[263].y, 2)
+                ) * width * (1 + eyeEnlargeStrength * 0.3);
+                
+                ctx.filter = `brightness(${1 + eyeEnlargeStrength * 0.1})`;
+                ctx.beginPath();
+                ctx.arc(leftEye.x, leftEye.y, leftEyeSize, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+                ctx.fill();
+                
+                ctx.beginPath();
+                ctx.arc(rightEye.x, rightEye.y, rightEyeSize, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            ctx.restore();
+        }
+        
+        async function enableCamera() {
+            cameraPlaceholder.innerHTML = `
+                <div class="loading-spinner"></div>
+                <h3>正在启动相机...</h3>
+                <p>请稍候</p>
+            `;
+            
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'user', width: 1280, height: 720 },
+                    audio: false
+                });
+                
+                cameraPreview.srcObject = stream;
+                await cameraPreview.play();
+                
+                ctx = canvasPreview.getContext('2d', { willReadFrequently: true });
+                
+                cameraPreview.style.display = 'block';
+                cameraPlaceholder.classList.add('hidden');
+                enableCameraBtn.innerHTML = '<span>⏸️</span><span>关闭相机</span>';
+                cameraBtnText.textContent = '关闭相机';
+                statusBar.style.display = 'flex';
+                isCameraOn = true;
+                
+                updateLightOverlay();
+                startFaceDetection();
+                
+            } catch (err) {
+                console.error('相机错误:', err);
+                cameraPlaceholder.innerHTML = `
+                    <span class="icon">❌</span>
+                    <h3>无法访问相机</h3>
+                    <p>请检查相机权限设置</p>
+                `;
+            }
+        }
+        
+        function disableCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            
+            cameraPreview.srcObject = null;
+            cameraPreview.style.display = 'none';
+            
+            if (ctx) {
+                ctx.clearRect(0, 0, canvasPreview.width, canvasPreview.height);
+            }
+            
+            cameraPlaceholder.classList.remove('hidden');
+            cameraPlaceholder.innerHTML = `
+                <span class="icon">📷</span>
+                <h3>AI模型已就绪</h3>
+                <p>点击下方按钮开启相机</p>
+            `;
+            
+            enableCameraBtn.innerHTML = '<span>📸</span><span>开启AI相机</span>';
+            cameraBtnText.textContent = '开启AI相机';
+            statusBar.style.display = 'none';
+            isCameraOn = false;
+        }
+        
+        function startFaceDetection() {
+            if (!faceMesh || !cameraPreview) return;
+            
+            const processFrame = async () => {
+                if (!isCameraOn) return;
+                
+                try {
+                    if (cameraPreview.readyState >= 2) {
+                        await faceMesh.send({ image: cameraPreview });
+                    }
+                } catch (error) {
+                    console.error('处理帧错误:', error);
+                }
+                
+                animationId = requestAnimationFrame(processFrame);
+            };
+            
+            processFrame();
+        }
+        
+        function updateLightOverlay() {
+            if (!isLightOn) {
+                lightOverlay.style.background = 'transparent';
+                return;
+            }
+            
+            const alpha = currentBrightness / 100;
+            
+            if (currentPreset) {
+                const preset = presetColors[currentPreset];
+                const r = parseInt(preset.hex.slice(1, 3), 16);
+                const g = parseInt(preset.hex.slice(3, 5), 16);
+                const b = parseInt(preset.hex.slice(5, 7), 16);
+                
+                const gradient = `radial-gradient(circle at center, rgba(${r}, ${g}, ${b}, ${alpha * 0.7}) 0%, rgba(${r}, ${g}, ${b}, ${alpha * 0.4}) 50%, rgba(${r}, ${g}, ${b}, ${alpha * 0.1}) 100%)`;
+                lightOverlay.style.background = gradient;
+            }
+        }
+        
         function takePhoto() {
             if (!isCameraOn) {
                 alert('请先开启相机');
@@ -1276,10 +1065,11 @@
             canvas.height = cameraPreview.videoHeight;
             const ctx = canvas.getContext('2d');
             
-            ctx.filter = beautyStyles[currentBeautyStyle].filter;
             ctx.drawImage(cameraPreview, 0, 0);
             
-            ctx.filter = 'none';
+            if (canvasPreview.width > 0 && canvasPreview.height > 0) {
+                ctx.drawImage(canvasPreview, 0, 0);
+            }
             
             if (isLightOn) {
                 ctx.globalCompositeOperation = 'multiply';
@@ -1288,19 +1078,19 @@
                 if (currentPreset) {
                     color = presetColors[currentPreset].hex;
                 } else {
-                    color = colorPicker.value;
+                    color = '#FFFFFF';
                 }
                 
                 const r = parseInt(color.slice(1, 3), 16);
                 const g = parseInt(color.slice(3, 5), 16);
                 const b = parseInt(color.slice(5, 7), 16);
                 
-                ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${currentBrightness / 100 * 0.5})`;
+                ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${currentBrightness / 100 * 0.4})`;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
             
             const link = document.createElement('a');
-            link.download = `photo_${currentBeautyStyle}_${Date.now()}.png`;
+            link.download = `ai_photo_${Date.now()}.png`;
             link.href = canvas.toDataURL('image/png');
             link.click();
             
@@ -1334,26 +1124,10 @@
             }, 1000);
         }
         
-        async function requestMicrophonePermission() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                stream.getTracks().forEach(track => track.stop());
-                return true;
-            } catch (err) {
-                console.error('麦克风权限错误:', err);
-                if (err.name === 'NotAllowedError') {
-                    showPlaceholder('microphone-denied');
-                } else {
-                    showPlaceholder('microphone-error', err.message || '未知错误');
-                }
-                return false;
-            }
-        }
-        
         function initVoiceRecognition() {
             if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                alert('抱歉，您的浏览器不支持语音识别功能\n\n推荐使用 Chrome 浏览器以获得最佳体验');
-                return false;
+                alert('抱歉，您的浏览器不支持语音识别功能');
+                return;
             }
             
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -1365,9 +1139,7 @@
             recognition.onstart = () => {
                 voiceBtn.classList.add('active');
                 voiceHint.classList.add('active');
-                listeningIndicator.classList.add('active');
                 isVoiceOn = true;
-                showVoiceFeedback('正在聆听...');
             };
             
             recognition.onend = () => {
@@ -1375,26 +1147,17 @@
                     try {
                         recognition.start();
                     } catch (err) {
-                        console.error('重启语音识别失败:', err);
                         isVoiceOn = false;
                         voiceBtn.classList.remove('active');
                         voiceHint.classList.remove('active');
-                        listeningIndicator.classList.remove('active');
-                        voiceFeedback.classList.remove('active');
                     }
                 }
             };
             
             recognition.onerror = (event) => {
-                console.error('语音识别错误:', event.error);
-                
                 if (event.error === 'not-allowed') {
-                    showPlaceholder('microphone-denied');
+                    alert('请允许麦克风权限');
                     toggleVoice();
-                    return;
-                }
-                
-                if (event.error === 'no-speech') {
                     return;
                 }
                 
@@ -1403,28 +1166,21 @@
                         try {
                             recognition.start();
                         } catch (err) {
-                            console.error('重启语音识别失败:', err);
+                            isVoiceOn = false;
+                            voiceBtn.classList.remove('active');
+                            voiceHint.classList.remove('active');
                         }
                     }, 1000);
                 }
             };
             
             recognition.onresult = (event) => {
-                let interimTranscript = '';
                 let finalTranscript = '';
                 
                 for (let i = event.resultIndex; i < event.results.length; i++) {
-                    const transcript = event.results[i][0].transcript;
-                    
                     if (event.results[i].isFinal) {
-                        finalTranscript += transcript;
-                    } else {
-                        interimTranscript += transcript;
+                        finalTranscript += event.results[i][0].transcript;
                     }
-                }
-                
-                if (interimTranscript) {
-                    showVoiceFeedback(`听到: ${interimTranscript}`);
                 }
                 
                 if (finalTranscript) {
@@ -1436,68 +1192,55 @@
             return true;
         }
         
-        function showVoiceFeedback(text) {
-            voiceFeedback.textContent = text;
-            voiceFeedback.classList.add('active');
-            
-            clearTimeout(window.voiceFeedbackTimeout);
-            window.voiceFeedbackTimeout = setTimeout(() => {
-                voiceFeedback.classList.remove('active');
-            }, 3000);
-        }
-        
         function checkVoiceCommand(text) {
             const lowerText = text.toLowerCase();
             
             for (let command of voiceCommands) {
                 if (lowerText.includes(command.toLowerCase()) || lowerText.includes(command)) {
-                    showVoiceFeedback(`✓ 收到指令: ${command}`);
-                    
                     if (command === '321' || command === '开始') {
-                        setTimeout(() => {
-                            showCountdown(() => {
-                                takePhoto();
-                            });
-                        }, 500);
+                        showCountdown(() => takePhoto());
                     } else {
-                        setTimeout(() => {
-                            takePhoto();
-                        }, 300);
+                        takePhoto();
                     }
                     break;
                 }
             }
         }
         
-        async function toggleVoice() {
+        function toggleVoice() {
             if (isVoiceOn) {
                 recognition.stop();
                 voiceBtn.classList.remove('active');
                 voiceHint.classList.remove('active');
-                listeningIndicator.classList.remove('active');
-                voiceFeedback.classList.remove('active');
                 isVoiceOn = false;
-                return;
-            }
-            
-            const hasPermission = await requestMicrophonePermission();
-            if (!hasPermission) {
                 return;
             }
             
             if (!recognition) {
                 const success = initVoiceRecognition();
-                if (!success) {
-                    return;
-                }
+                if (!success) return;
             }
             
             try {
                 recognition.start();
             } catch (err) {
                 console.error('启动语音识别失败:', err);
-                alert('启动语音识别失败，请刷新页面重试');
             }
+        }
+        
+        function applyBeautyPreset(style) {
+            const preset = beautyPresets[style];
+            if (!preset) return;
+            
+            faceSlimSlider.value = preset.faceSlim;
+            eyeEnlargeSlider.value = preset.eyeEnlarge;
+            smoothSlider.value = preset.smooth;
+            whiteningSlider.value = preset.whitening;
+            
+            document.getElementById('faceSlimValue').textContent = preset.faceSlim;
+            document.getElementById('eyeEnlargeValue').textContent = preset.eyeEnlarge;
+            document.getElementById('smoothValue').textContent = preset.smooth;
+            document.getElementById('whiteningValue').textContent = preset.whitening;
         }
         
         beautyBtns.forEach(btn => {
@@ -1505,11 +1248,7 @@
                 beautyBtns.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 currentBeautyStyle = btn.dataset.style;
-                
-                if (isCameraOn) {
-                    cameraPreview.style.filter = beautyStyles[currentBeautyStyle].filter;
-                    updateBeautyIndicator();
-                }
+                applyBeautyPreset(currentBeautyStyle);
             });
         });
         
@@ -1518,10 +1257,24 @@
                 presetBtns.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 currentPreset = btn.dataset.color;
-                colorPicker.value = presetColors[currentPreset].hex;
-                colorInput.value = colorPicker.value;
                 updateLightOverlay();
             });
+        });
+        
+        faceSlimSlider.addEventListener('input', () => {
+            document.getElementById('faceSlimValue').textContent = faceSlimSlider.value;
+        });
+        
+        eyeEnlargeSlider.addEventListener('input', () => {
+            document.getElementById('eyeEnlargeValue').textContent = eyeEnlargeSlider.value;
+        });
+        
+        smoothSlider.addEventListener('input', () => {
+            document.getElementById('smoothValue').textContent = smoothSlider.value;
+        });
+        
+        whiteningSlider.addEventListener('input', () => {
+            document.getElementById('whiteningValue').textContent = whiteningSlider.value;
         });
         
         brightnessSlider.addEventListener('input', () => {
@@ -1530,21 +1283,16 @@
             updateLightOverlay();
         });
         
-        colorPicker.addEventListener('input', () => {
-            colorInput.value = colorPicker.value.toUpperCase();
-            presetBtns.forEach(b => b.classList.remove('active'));
-            currentPreset = null;
-            updateLightOverlay();
-        });
-        
-        colorInput.addEventListener('input', () => {
-            const color = colorInput.value.toUpperCase();
-            if (/^#[0-9A-F]{6}$/.test(color)) {
-                colorPicker.value = color;
-                presetBtns.forEach(b => b.classList.remove('active'));
-                currentPreset = null;
-                updateLightOverlay();
+        toggleLightBtn.addEventListener('click', () => {
+            isLightOn = !isLightOn;
+            if (isLightOn) {
+                toggleLightBtn.innerHTML = '💡 补光';
+                toggleLightBtn.classList.remove('off');
+            } else {
+                toggleLightBtn.innerHTML = '🔴 关灯';
+                toggleLightBtn.classList.add('off');
             }
+            updateLightOverlay();
         });
         
         enableCameraBtn.addEventListener('click', () => {
@@ -1555,21 +1303,10 @@
             }
         });
         
-        toggleLightBtn.addEventListener('click', () => {
-            isLightOn = !isLightOn;
-            if (isLightOn) {
-                toggleLightBtn.innerHTML = '💡 补光开';
-                toggleLightBtn.classList.remove('off');
-            } else {
-                toggleLightBtn.innerHTML = '🔴 补光关';
-                toggleLightBtn.classList.add('off');
-            }
-            updateLightOverlay();
-        });
-        
         captureBtn.addEventListener('click', takePhoto);
         voiceBtn.addEventListener('click', toggleVoice);
         
+        initFaceMesh();
         updateLightOverlay();
     </script>
 </body>
