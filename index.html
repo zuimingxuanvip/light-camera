@@ -13,7 +13,7 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -22,13 +22,13 @@
         }
         
         .app-container {
-            background: rgba(42, 42, 58, 0.95);
-            backdrop-filter: blur(20px);
+            background: rgba(30, 41, 59, 0.98);
             border-radius: 28px;
-            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
             padding: 16px;
             width: 100%;
             max-width: 460px;
+            backdrop-filter: blur(20px);
         }
         
         .header {
@@ -54,7 +54,7 @@
             aspect-ratio: 3/4;
             border-radius: 20px;
             overflow: hidden;
-            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+            background: #000;
             margin-bottom: 14px;
         }
         
@@ -85,7 +85,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: linear-gradient(135deg, #2c2c44 0%, #1a1a2e 100%);
+            background: linear-gradient(135deg, #1e293b 0%, #0f0f23 100%);
             color: #94a3b8;
             padding: 24px;
             text-align: center;
@@ -111,21 +111,6 @@
             line-height: 1.6;
         }
         
-        .loading-spinner {
-            border: 3px solid rgba(255, 255, 255, 0.15);
-            border-radius: 50%;
-            border-top: 3px solid #6366f1;
-            width: 44px;
-            height: 44px;
-            animation: spin 1s linear infinite;
-            margin-bottom: 16px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
         .enable-camera-btn {
             width: 100%;
             padding: 16px;
@@ -142,7 +127,6 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            letter-spacing: 0.3px;
         }
         
         .enable-camera-btn:hover {
@@ -422,7 +406,6 @@
         .capture-btn {
             background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
             color: white;
-            grid-column: span 1;
         }
         
         .voice-hint {
@@ -508,20 +491,20 @@
             <video id="cameraPreview" autoplay playsinline></video>
             <canvas id="canvasPreview"></canvas>
             <div class="camera-placeholder" id="cameraPlaceholder">
-                <div class="loading-spinner"></div>
-                <h3>正在加载AI模型...</h3>
-                <p>请稍候，正在初始化专业美颜引擎</p>
+                <span class="icon">📷</span>
+                <h3>相机就绪</h3>
+                <p>点击下方按钮开启相机</p>
             </div>
         </div>
         
         <button class="enable-camera-btn" id="enableCameraBtn">
             <span>📸</span>
-            <span id="cameraBtnText">开启AI相机</span>
+            <span id="cameraBtnText">开启相机</span>
         </button>
         
         <div class="status-bar" id="statusBar">
             <div class="status-dot"></div>
-            <span class="status-text">专业美颜引擎运行中</span>
+            <span class="status-text">美颜引擎运行中</span>
         </div>
         
         <div class="section-title">🎨 美颜模式</div>
@@ -548,20 +531,6 @@
         <div class="ai-sliders">
             <div class="slider-row">
                 <div class="slider-label">
-                    <span>👋 瘦脸</span>
-                    <span class="slider-value" id="faceSlimValue">20</span>
-                </div>
-                <input type="range" class="beauty-slider" id="faceSlimSlider" min="0" max="100" value="20">
-            </div>
-            <div class="slider-row">
-                <div class="slider-label">
-                    <span>👁️ 大眼</span>
-                    <span class="slider-value" id="eyeEnlargeValue">15</span>
-                </div>
-                <input type="range" class="beauty-slider" id="eyeEnlargeSlider" min="0" max="100" value="15">
-            </div>
-            <div class="slider-row">
-                <div class="slider-label">
                     <span>✨ 磨皮</span>
                     <span class="slider-value" id="smoothValue">40</span>
                 </div>
@@ -580,6 +549,20 @@
                     <span class="slider-value" id="brightenValue">25</span>
                 </div>
                 <input type="range" class="beauty-slider" id="brightenSlider" min="0" max="100" value="25">
+            </div>
+            <div class="slider-row">
+                <div class="slider-label">
+                    <span>👋 瘦脸</span>
+                    <span class="slider-value" id="faceSlimValue">20</span>
+                </div>
+                <input type="range" class="beauty-slider" id="faceSlimSlider" min="0" max="100" value="20">
+            </div>
+            <div class="slider-row">
+                <div class="slider-label">
+                    <span>👁️ 大眼</span>
+                    <span class="slider-value" id="eyeEnlargeValue">15</span>
+                </div>
+                <input type="range" class="beauty-slider" id="eyeEnlargeSlider" min="0" max="100" value="15">
             </div>
         </div>
         
@@ -630,9 +613,6 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1646425229/face_mesh.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1.1675466862/selfie_segmentation.js"></script>
-    
     <script>
         const cameraPreview = document.getElementById('cameraPreview');
         const canvasPreview = document.getElementById('canvasPreview');
@@ -649,11 +629,11 @@
         const voiceBtn = document.getElementById('voiceBtn');
         const voiceHint = document.getElementById('voiceHint');
         
-        const faceSlimSlider = document.getElementById('faceSlimSlider');
-        const eyeEnlargeSlider = document.getElementById('eyeEnlargeSlider');
         const smoothSlider = document.getElementById('smoothSlider');
         const whiteningSlider = document.getElementById('whiteningSlider');
         const brightenSlider = document.getElementById('brightenSlider');
+        const faceSlimSlider = document.getElementById('faceSlimSlider');
+        const eyeEnlargeSlider = document.getElementById('eyeEnlargeSlider');
         
         const presetColors = {
             warm: { r: 255, g: 200, b: 150 },
@@ -677,77 +657,98 @@
         let isVoiceOn = false;
         let stream = null;
         let recognition = null;
-        let faceMesh = null;
-        let selfieSegmentation = null;
         let ctx = null;
         let animationId = null;
-        let landmarks = null;
-        let segmentationMask = null;
         
         const voiceCommands = ['拍照', '茄子', 'cheese', '321', '开始', '咔嚓', '拍一张', '自拍'];
         
-        async function initModels() {
-            try {
-                faceMesh = new FaceMesh({
-                    locateFile: (file) => {
-                        return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1646425229/${file}`;
-                    }
-                });
-                
-                faceMesh.setOptions({
-                    maxNumFaces: 1,
-                    refineLandmarks: true,
-                    minDetectionConfidence: 0.5,
-                    minTrackingConfidence: 0.5
-                });
-                
-                faceMesh.onResults(onFaceMeshResults);
-                
-                selfieSegmentation = new SelfieSegmentation({
-                    locateFile: (file) => {
-                        return `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1.1675466862/${file}`;
-                    }
-                });
-                
-                selfieSegmentation.setOptions({
-                    modelSelection: 1,
-                    selfieMode: true
-                });
-                
-                selfieSegmentation.onResults(onSegmentationResults);
-                
-                await Promise.all([
-                    faceMesh.initialize(),
-                    selfieSegmentation.initialize()
-                ]);
-                
-                console.log('AI模型初始化成功');
-                cameraPlaceholder.innerHTML = `
-                    <span class="icon">📷</span>
-                    <h3>AI模型已就绪</h3>
-                    <p>点击下方按钮开启相机</p>
-                    <p>体验专业级美颜效果</p>
-                `;
-                
-            } catch (error) {
-                console.error('模型初始化失败:', error);
-                cameraPlaceholder.innerHTML = `
-                    <span class="icon">⚠️</span>
-                    <h3>AI模型加载失败</h3>
-                    <p>请检查网络连接后刷新页面</p>
-                `;
-            }
-        }
-        
-        function onSegmentationResults(results) {
-            if (results.segmentationMask) {
-                segmentationMask = results.segmentationMask;
-            }
-        }
-        
-        function onFaceMeshResults(results) {
-            if (!canvasPreview || !ctx) return;
+        async function enableCamera() {
+            cameraPlaceholder.innerHTML = `
+                <div style="font-size: 48px; margin-bottom: 12px;">📷</div>
+                <h3>正在启动相机...</h3>
+                <p>请稍候</p>
+            `;
             
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'user', width: 1280, height: 720 },
+                    audio: false
+                });
+                
+                cameraPreview.srcObject = stream;
+                await cameraPreview.play();
+                
+                ctx = canvasPreview.getContext('2d', { willReadFrequently: true });
+                
+                cameraPreview.style.display = 'block';
+                cameraPlaceholder.classList.add('hidden');
+                enableCameraBtn.innerHTML = '<span>⏸️</span><span>关闭相机</span>';
+                cameraBtnText.textContent = '关闭相机';
+                statusBar.style.display = 'flex';
+                isCameraOn = true;
+                
+                startProcessing();
+                
+            } catch (err) {
+                console.error('相机错误:', err);
+                cameraPlaceholder.innerHTML = `
+                    <span style="font-size: 48px; margin-bottom: 12px;">❌</span>
+                    <h3>无法访问相机</h3>
+                    <p>请检查相机权限设置</p>
+                `;
+            }
+        }
+        
+        function disableCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            
+            cameraPreview.srcObject = null;
+            cameraPreview.style.display = 'none';
+            
+            if (ctx) {
+                ctx.clearRect(0, 0, canvasPreview.width, canvasPreview.height);
+            }
+            
+            cameraPlaceholder.classList.remove('hidden');
+            cameraPlaceholder.innerHTML = `
+                <span style="font-size: 48px; margin-bottom: 12px;">📷</span>
+                <h3>相机就绪</h3>
+                <p>点击下方按钮开启相机</p>
+            `;
+            
+            enableCameraBtn.innerHTML = '<span>📸</span><span>开启相机</span>';
+            cameraBtnText.textContent = '开启相机';
+            statusBar.style.display = 'none';
+            isCameraOn = false;
+        }
+        
+        function startProcessing() {
+            const processFrame = () => {
+                if (!isCameraOn) return;
+                
+                try {
+                    if (cameraPreview.readyState >= 2) {
+                        applyBeautyEffects();
+                    }
+                } catch (error) {
+                    console.error('处理帧错误:', error);
+                }
+                
+                animationId = requestAnimationFrame(processFrame);
+            };
+            
+            processFrame();
+        }
+        
+        function applyBeautyEffects() {
             const width = cameraPreview.videoWidth;
             const height = cameraPreview.videoHeight;
             
@@ -755,72 +756,20 @@
             canvasPreview.height = height;
             
             ctx.save();
-            
             ctx.scale(-1, 1);
             ctx.drawImage(cameraPreview, -width, 0, width, height);
             ctx.restore();
             
-            if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
-                landmarks = results.multiFaceLandmarks[0];
-                
-                if (currentBeautyStyle !== 'none') {
-                    applyProfessionalBeauty(ctx, width, height, landmarks);
-                }
-            } else {
-                landmarks = null;
-                if (currentBeautyStyle !== 'none') {
-                    applyBasicBeauty(ctx, width, height);
-                }
+            if (currentBeautyStyle !== 'none') {
+                applyProfessionalBeauty(ctx, width, height);
             }
             
             if (isLightOn && currentBrightness > 0) {
                 applyLightEffect(ctx, width, height);
             }
-            
-            ctx.restore();
         }
         
-        function applyBasicBeauty(ctx, width, height) {
-            const smoothStrength = parseInt(smoothSlider.value) / 100;
-            const whiteningStrength = parseInt(whiteningSlider.value) / 100;
-            const brightenStrength = parseInt(brightenSlider.value) / 100;
-            
-            const imageData = ctx.getImageData(0, 0, width, height);
-            const data = imageData.data;
-            
-            for (let i = 0; i < data.length; i += 4) {
-                let r = data[i];
-                let g = data[i + 1];
-                let b = data[i + 2];
-                
-                if (smoothStrength > 0.3) {
-                    r = r * (1 - smoothStrength * 0.15) + 128 * smoothStrength * 0.15;
-                    g = g * (1 - smoothStrength * 0.15) + 128 * smoothStrength * 0.15;
-                    b = b * (1 - smoothStrength * 0.15) + 128 * smoothStrength * 0.15;
-                }
-                
-                if (whiteningStrength > 0) {
-                    const avg = (r + g + b) / 3;
-                    r = r + whiteningStrength * (255 - avg) * 0.35;
-                    g = g + whiteningStrength * (255 - avg) * 0.35;
-                    b = b + whiteningStrength * (255 - avg) * 0.35;
-                }
-                
-                if (brightenStrength > 0) {
-                    r = Math.min(255, r * (1 + brightenStrength * 0.25));
-                    g = Math.min(255, g * (1 + brightenStrength * 0.25));
-                    b = Math.min(255, b * (1 + brightenStrength * 0.25));
-                }
-                
-                data[i] = Math.min(255, Math.max(0, r));
-                data[i + 1] = Math.min(255, Math.max(0, g));
-                data[i + 2] = Math.min(255, Math.max(0, b));
-            }
-            
-            ctx.putImageData(imageData, 0, 0);
-        }
-        
-        function applyProfessionalBeauty(ctx, width, height, landmarks) {
+        function applyProfessionalBeauty(ctx, width, height) {
             const smoothStrength = parseInt(smoothSlider.value) / 100;
             const whiteningStrength = parseInt(whiteningSlider.value) / 100;
             const brightenStrength = parseInt(brightenSlider.value) / 100;
@@ -830,144 +779,131 @@
             const imageData = ctx.getImageData(0, 0, width, height);
             const data = imageData.data;
             
-            const skinMask = createSkinMask(width, height, landmarks);
-            
-            for (let i = 0; i < data.length; i += 4) {
-                const idx = i / 4;
-                const skinValue = skinMask[idx];
-                
-                if (skinValue > 0) {
+            if (smoothStrength > 0 || whiteningStrength > 0 || brightenStrength > 0) {
+                for (let i = 0; i < data.length; i += 4) {
                     let r = data[i];
                     let g = data[i + 1];
                     let b = data[i + 2];
                     
-                    if (smoothStrength > 0) {
-                        const blurredR = gaussianBlurPixel(data, width, height, idx, 3, skinValue);
-                        const blurredG = gaussianBlurPixel(data, width, height, idx + 1, 3, skinValue);
-                        const blurredB = gaussianBlurPixel(data, width, height, idx + 2, 3, skinValue);
+                    if (isSkinColor(r, g, b)) {
+                        if (smoothStrength > 0) {
+                            const blurred = applyBilateralBlur(data, width, height, i, smoothStrength);
+                            r = r * (1 - smoothStrength * 0.8) + blurred[0] * smoothStrength * 0.8;
+                            g = g * (1 - smoothStrength * 0.8) + blurred[1] * smoothStrength * 0.8;
+                            b = b * (1 - smoothStrength * 0.8) + blurred[2] * smoothStrength * 0.8;
+                        }
                         
-                        r = r * (1 - smoothStrength * skinValue * 0.7) + blurredR * smoothStrength * skinValue * 0.7;
-                        g = g * (1 - smoothStrength * skinValue * 0.7) + blurredG * smoothStrength * skinValue * 0.7;
-                        b = b * (1 - smoothStrength * skinValue * 0.7) + blurredB * smoothStrength * skinValue * 0.7;
-                    }
-                    
-                    if (whiteningStrength > 0) {
-                        const yc = 0.299 * r + 0.587 * g + 0.114 * b;
-                        const cb = -0.169 * r - 0.331 * g + 0.5 * b + 128;
-                        const cr = 0.5 * r - 0.419 * g - 0.081 * b + 128;
+                        if (whiteningStrength > 0) {
+                            const yc = 0.299 * r + 0.587 * g + 0.114 * b;
+                            const cb = -0.169 * r - 0.331 * g + 0.5 * b + 128;
+                            const cr = 0.5 * r - 0.419 * g - 0.081 * b + 128;
+                            
+                            let newY = Math.min(255, yc * (1 + whiteningStrength * 0.2));
+                            let newCb = Math.max(0, Math.min(255, cb - whiteningStrength * 8));
+                            let newCr = Math.max(0, Math.min(255, cr - whiteningStrength * 12));
+                            
+                            const finalR = Math.max(0, Math.min(255, newY + 1.402 * (newCr - 128)));
+                            const finalG = Math.max(0, Math.min(255, newY - 0.344 * (newCb - 128) - 0.714 * (newCr - 128)));
+                            const finalB = Math.max(0, Math.min(255, newY + 1.772 * (newCb - 128)));
+                            
+                            r = r * (1 - whiteningStrength * 0.7) + finalR * whiteningStrength * 0.7;
+                            g = g * (1 - whiteningStrength * 0.7) + finalG * whiteningStrength * 0.7;
+                            b = b * (1 - whiteningStrength * 0.7) + finalB * whiteningStrength * 0.7;
+                        }
                         
-                        let newY = Math.min(255, yc * (1 + whiteningStrength * 0.2 * skinValue));
-                        let newCb = 128 + (cb - 128) * (1 - whiteningStrength * 0.25 * skinValue);
-                        let newCr = 128 + (cr - 128) * (1 - whiteningStrength * 0.35 * skinValue);
-                        
-                        const finalR = newY + 1.402 * (newCr - 128);
-                        const finalG = newY - 0.344 * (newCb - 128) - 0.714 * (newCr - 128);
-                        const finalB = newY + 1.772 * (newCb - 128);
-                        
-                        r = r * (1 - skinValue * whiteningStrength * 0.8) + finalR * skinValue * whiteningStrength * 0.8;
-                        g = g * (1 - skinValue * whiteningStrength * 0.8) + finalG * skinValue * whiteningStrength * 0.8;
-                        b = b * (1 - skinValue * whiteningStrength * 0.8) + finalB * skinValue * whiteningStrength * 0.8;
-                    }
-                    
-                    if (brightenStrength > 0) {
-                        const brightenAmount = brightenStrength * skinValue * 0.3;
-                        r = Math.min(255, r * (1 + brightenAmount));
-                        g = Math.min(255, g * (1 + brightenAmount));
-                        b = Math.min(255, b * (1 + brightenAmount));
+                        if (brightenStrength > 0) {
+                            const brightenAmount = brightenStrength * 0.3;
+                            r = Math.min(255, r * (1 + brightenAmount));
+                            g = Math.min(255, g * (1 + brightenAmount));
+                            b = Math.min(255, b * (1 + brightenAmount));
+                        }
+                    } else {
+                        if (brightenStrength > 0) {
+                            const brightenAmount = brightenStrength * 0.1;
+                            r = Math.min(255, r * (1 + brightenAmount));
+                            g = Math.min(255, g * (1 + brightenAmount));
+                            b = Math.min(255, b * (1 + brightenAmount));
+                        }
                     }
                     
                     data[i] = Math.min(255, Math.max(0, r));
                     data[i + 1] = Math.min(255, Math.max(0, g));
                     data[i + 2] = Math.min(255, Math.max(0, b));
                 }
+                
+                ctx.putImageData(imageData, 0, 0);
             }
-            
-            ctx.putImageData(imageData, 0, 0);
             
             if (faceSlimStrength > 0 || eyeEnlargeStrength > 0) {
-                applyFaceWarp(ctx, width, height, landmarks, faceSlimStrength, eyeEnlargeStrength);
+                applyFaceWarp(ctx, width, height, faceSlimStrength, eyeEnlargeStrength);
             }
         }
         
-        function createSkinMask(width, height, landmarks) {
-            const mask = new Float32Array(width * height);
-            const facePoints = [];
+        function isSkinColor(r, g, b) {
+            const rNorm = r / 255;
+            const gNorm = g / 255;
+            const bNorm = b / 255;
             
-            const faceOutline = [
-                10, 151, 337, 299, 333, 298, 301, 251, 284, 252, 389, 356, 454, 323, 361, 288,
-                397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132, 93,
-                234, 127, 162, 21, 54, 103, 67, 109, 10
-            ];
+            const max = Math.max(rNorm, gNorm, bNorm);
+            const min = Math.min(rNorm, gNorm, bNorm);
+            const delta = max - min;
             
-            for (let i = 0; i < faceOutline.length; i++) {
-                const point = landmarks[faceOutline[i]];
-                if (point) {
-                    facePoints.push({ x: point.x * width, y: point.y * height });
-                }
-            }
+            const sat = max === 0 ? 0 : delta / max;
+            const light = (max + min) / 2;
             
-            for (let y = 0; y < height; y++) {
-                for (let x = 0; x < width; x++) {
-                    const idx = y * width + x;
-                    
-                    let minDist = Infinity;
-                    for (const point of facePoints) {
-                        const dist = Math.sqrt((x - point.x) ** 2 + (y - point.y) ** 2);
-                        minDist = Math.min(minDist, dist);
-                    }
-                    
-                    const faceRadius = Math.min(width, height) * 0.4;
-                    if (minDist < faceRadius) {
-                        mask[idx] = Math.max(0, 1 - minDist / faceRadius);
-                    }
-                }
-            }
+            const rRatio = r / (g + 0.01);
+            const rgDiff = r - g;
             
-            const gaussianMask = new Float32Array(mask.length);
-            for (let i = 0; i < mask.length; i++) {
-                const x = i % width;
-                const y = Math.floor(i / width);
-                let sum = 0;
-                let weightSum = 0;
-                
-                for (let dy = -3; dy <= 3; dy++) {
-                    for (let dx = -3; dx <= 3; dx++) {
-                        const nx = Math.min(Math.max(0, x + dx), width - 1);
-                        const ny = Math.min(Math.max(0, y + dy), height - 1);
-                        const nidx = ny * width + nx;
-                        const weight = Math.exp(-(dx * dx + dy * dy) / (2 * 9));
-                        sum += mask[nidx] * weight;
-                        weightSum += weight;
-                    }
-                }
-                
-                gaussianMask[i] = sum / weightSum;
-            }
-            
-            return gaussianMask;
+            return (r > 95 && g > 40 && b > 20 &&
+                    r > g && r > b && rgDiff > 15 &&
+                    Math.abs(r - g) > 10);
         }
         
-        function gaussianBlurPixel(data, width, height, idx, radius, skinValue) {
-            let sum = 0;
-            let weightSum = 0;
-            const x = idx % width;
-            const y = Math.floor(idx / width);
+        function applyBilateralBlur(data, width, height, idx, strength) {
+            const x = (idx / 4) % width;
+            const y = Math.floor(idx / 4 / width);
+            const kernelSize = Math.floor(3 + strength * 5);
+            const halfKernel = Math.floor(kernelSize / 2);
             
-            for (let dy = -radius; dy <= radius; dy++) {
-                for (let dx = -radius; dx <= radius; dx++) {
+            let sumR = 0, sumG = 0, sumB = 0, weightSum = 0;
+            
+            const centerR = data[idx];
+            const centerG = data[idx + 1];
+            const centerB = data[idx + 2];
+            
+            for (let dy = -halfKernel; dy <= halfKernel; dy++) {
+                for (let dx = -halfKernel; dx <= halfKernel; dx++) {
                     const nx = Math.min(Math.max(0, x + dx), width - 1);
                     const ny = Math.min(Math.max(0, y + dy), height - 1);
-                    const nidx = (ny * width + nx) * 4 + (idx % 4);
-                    const weight = Math.exp(-(dx * dx + dy * dy) / (2 * radius * radius));
-                    sum += data[nidx] * weight;
+                    const nidx = (ny * width + nx) * 4;
+                    
+                    const nR = data[nidx];
+                    const nG = data[nidx + 1];
+                    const nB = data[nidx + 2];
+                    
+                    const colorDist = Math.sqrt(
+                        (nR - centerR) ** 2 + 
+                        (nG - centerG) ** 2 + 
+                        (nB - centerB) ** 2
+                    );
+                    
+                    const spaceDist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    const colorWeight = Math.exp(-colorDist / (2 * 30 * strength + 10));
+                    const spaceWeight = Math.exp(-spaceDist / (2 * 5));
+                    const weight = colorWeight * spaceWeight;
+                    
+                    sumR += nR * weight;
+                    sumG += nG * weight;
+                    sumB += nB * weight;
                     weightSum += weight;
                 }
             }
             
-            return sum / weightSum;
+            return [sumR / weightSum, sumG / weightSum, sumB / weightSum];
         }
         
-        function applyFaceWarp(ctx, width, height, landmarks, faceSlimStrength, eyeEnlargeStrength) {
+        function applyFaceWarp(ctx, width, height, faceSlimStrength, eyeEnlargeStrength) {
             const tempCanvas = document.createElement('canvas');
             tempCanvas.width = width;
             tempCanvas.height = height;
@@ -977,76 +913,55 @@
             const outputImage = ctx.createImageData(width, height);
             const sourceImage = tempCtx.getImageData(0, 0, width, height);
             
-            const faceCenter = {
-                x: landmarks[168].x * width,
-                y: landmarks[168].y * height
-            };
-            
-            const leftCheek = {
-                x: landmarks[50].x * width,
-                y: landmarks[50].y * height
-            };
-            
-            const rightCheek = {
-                x: landmarks[280].x * width,
-                y: landmarks[280].y * height
-            };
-            
-            const leftEye = {
-                x: landmarks[33].x * width,
-                y: landmarks[33].y * height
-            };
-            
-            const rightEye = {
-                x: landmarks[263].x * width,
-                y: landmarks[263].y * height
-            };
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const faceRadius = Math.min(width, height) * 0.35;
             
             for (let y = 0; y < height; y++) {
                 for (let x = 0; x < width; x++) {
                     let srcX = x;
                     let srcY = y;
                     
-                    if (faceSlimStrength > 0) {
-                        const distToCenter = Math.sqrt((x - faceCenter.x) ** 2 + (y - faceCenter.y) ** 2);
-                        const faceRadius = Math.abs(rightCheek.x - leftCheek.x) * 1.2;
-                        
-                        if (distToCenter < faceRadius) {
-                            const angle = Math.atan2(y - faceCenter.y, x - faceCenter.x);
-                            const horizontalFactor = Math.abs(Math.cos(angle));
-                            const verticalFactor = Math.abs(Math.sin(angle));
-                            
-                            const cheekLeftDist = Math.sqrt((x - leftCheek.x) ** 2 + (y - leftCheek.y) ** 2);
-                            const cheekRightDist = Math.sqrt((x - rightCheek.x) ** 2 + (y - rightCheek.y) ** 2);
-                            
-                            const cheekDist = Math.min(cheekLeftDist, cheekRightDist);
-                            const cheekInfluence = Math.max(0, 1 - cheekDist / (faceRadius * 0.5));
-                            
-                            const totalStrength = faceSlimStrength * cheekInfluence * horizontalFactor * 0.3;
-                            
-                            const dx = x - faceCenter.x;
-                            const newDx = dx * (1 - totalStrength);
-                            srcX = faceCenter.x + newDx;
-                        }
-                    }
+                    const distToCenter = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
                     
-                    if (eyeEnlargeStrength > 0) {
-                        for (const eye of [leftEye, rightEye]) {
-                            const eyeDist = Math.sqrt((x - eye.x) ** 2 + (y - eye.y) ** 2);
-                            const eyeRadius = Math.min(width, height) * 0.12;
+                    if (distToCenter < faceRadius * 1.5) {
+                        const angle = Math.atan2(y - centerY, x - centerX);
+                        const horizontalFactor = Math.abs(Math.cos(angle));
+                        const verticalFactor = Math.abs(Math.sin(angle));
+                        
+                        if (faceSlimStrength > 0) {
+                            const cheekYStart = centerY - faceRadius * 0.3;
+                            const cheekYEnd = centerY + faceRadius * 0.7;
                             
-                            if (eyeDist < eyeRadius * 1.5) {
-                                const eyeInfluence = Math.max(0, 1 - eyeDist / (eyeRadius * 1.5));
-                                const strength = eyeEnlargeStrength * eyeInfluence * 0.25;
+                            if (y > cheekYStart && y < cheekYEnd) {
+                                const yProgress = (y - cheekYStart) / (cheekYEnd - cheekYStart);
+                                const cheekInfluence = Math.sin(yProgress * Math.PI);
+                                const slimAmount = faceSlimStrength * cheekInfluence * horizontalFactor * 0.25;
                                 
-                                const dx = x - eye.x;
-                                const dy = y - eye.y;
+                                const dx = x - centerX;
+                                srcX = centerX + dx * (1 - slimAmount);
+                            }
+                        }
+                        
+                        if (eyeEnlargeStrength > 0) {
+                            const leftEyeX = centerX - width * 0.18;
+                            const rightEyeX = centerX + width * 0.18;
+                            const eyeY = centerY - height * 0.1;
+                            const eyeRadius = Math.min(width, height) * 0.08;
+                            
+                            for (const eyeX of [leftEyeX, rightEyeX]) {
+                                const eyeDist = Math.sqrt((x - eyeX) ** 2 + (y - eyeY) ** 2);
                                 
-                                const newDx = dx * (1 + strength);
-                                const newDy = dy * (1 + strength);
-                                
-                                srcX = eye.x + newDx;
-                                srcY = eye.y + newDy;
+                                if (eyeDist < eyeRadius * 2) {
+                                    const eyeInfluence = Math.max(0, 1 - eyeDist / (eyeRadius * 2));
+                                    const enlargeAmount = eyeEnlargeStrength * eyeInfluence * 0.2;
+                                    
+                                    const dx = x - eyeX;
+                                    const dy = y - eyeY;
+                                    
+                                    srcX = eyeX + dx * (1 + enlargeAmount);
+                                    srcY = eyeY + dy * (1 + enlargeAmount);
+                                }
                             }
                         }
                     }
@@ -1094,7 +1009,7 @@
             
             const centerX = width / 2;
             const centerY = height * 0.35;
-            const maxRadius = Math.max(width, height) * 0.7;
+            const maxRadius = Math.max(width, height) * 0.8;
             
             for (let y = 0; y < height; y++) {
                 for (let x = 0; x < width; x++) {
@@ -1102,20 +1017,21 @@
                     
                     const dist = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
                     const falloff = Math.max(0, 1 - dist / maxRadius);
-                    const localAlpha = alpha * falloff * 0.35;
+                    const falloffCurve = falloff * falloff;
+                    const localAlpha = alpha * falloffCurve * 0.4;
                     
                     let r = data[idx];
                     let g = data[idx + 1];
                     let b = data[idx + 2];
                     
-                    r = r * (1 - localAlpha * 0.2) + color.r * localAlpha;
-                    g = g * (1 - localAlpha * 0.2) + color.g * localAlpha;
-                    b = b * (1 - localAlpha * 0.2) + color.b * localAlpha;
+                    const blendR = r * (1 - localAlpha) + color.r * localAlpha;
+                    const blendG = g * (1 - localAlpha) + color.g * localAlpha;
+                    const blendB = b * (1 - localAlpha) + color.b * localAlpha;
                     
-                    const brightnessBoost = 1 + localAlpha * 0.25;
-                    r = Math.min(255, r * brightnessBoost);
-                    g = Math.min(255, g * brightnessBoost);
-                    b = Math.min(255, b * brightnessBoost);
+                    const brightnessBoost = 1 + localAlpha * 0.3;
+                    r = Math.min(255, blendR * brightnessBoost);
+                    g = Math.min(255, blendG * brightnessBoost);
+                    b = Math.min(255, blendB * brightnessBoost);
                     
                     data[idx] = Math.min(255, Math.max(0, r));
                     data[idx + 1] = Math.min(255, Math.max(0, g));
@@ -1124,97 +1040,6 @@
             }
             
             ctx.putImageData(imageData, 0, 0);
-        }
-        
-        async function enableCamera() {
-            cameraPlaceholder.innerHTML = `
-                <div class="loading-spinner"></div>
-                <h3>正在启动相机...</h3>
-                <p>请稍候</p>
-            `;
-            
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'user', width: 1280, height: 720 },
-                    audio: false
-                });
-                
-                cameraPreview.srcObject = stream;
-                await cameraPreview.play();
-                
-                ctx = canvasPreview.getContext('2d', { willReadFrequently: true });
-                
-                cameraPreview.style.display = 'block';
-                cameraPlaceholder.classList.add('hidden');
-                enableCameraBtn.innerHTML = '<span>⏸️</span><span>关闭相机</span>';
-                cameraBtnText.textContent = '关闭相机';
-                statusBar.style.display = 'flex';
-                isCameraOn = true;
-                
-                startProcessing();
-                
-            } catch (err) {
-                console.error('相机错误:', err);
-                cameraPlaceholder.innerHTML = `
-                    <span class="icon">❌</span>
-                    <h3>无法访问相机</h3>
-                    <p>请检查相机权限设置</p>
-                `;
-            }
-        }
-        
-        function disableCamera() {
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-                stream = null;
-            }
-            
-            if (animationId) {
-                cancelAnimationFrame(animationId);
-                animationId = null;
-            }
-            
-            cameraPreview.srcObject = null;
-            cameraPreview.style.display = 'none';
-            
-            if (ctx) {
-                ctx.clearRect(0, 0, canvasPreview.width, canvasPreview.height);
-            }
-            
-            cameraPlaceholder.classList.remove('hidden');
-            cameraPlaceholder.innerHTML = `
-                <span class="icon">📷</span>
-                <h3>AI模型已就绪</h3>
-                <p>点击下方按钮开启相机</p>
-            `;
-            
-            enableCameraBtn.innerHTML = '<span>📸</span><span>开启AI相机</span>';
-            cameraBtnText.textContent = '开启AI相机';
-            statusBar.style.display = 'none';
-            isCameraOn = false;
-        }
-        
-        function startProcessing() {
-            if (!faceMesh || !cameraPreview) return;
-            
-            const processFrame = async () => {
-                if (!isCameraOn) return;
-                
-                try {
-                    if (cameraPreview.readyState >= 2) {
-                        await Promise.all([
-                            faceMesh.send({ image: cameraPreview }),
-                            selfieSegmentation.send({ image: cameraPreview })
-                        ]);
-                    }
-                } catch (error) {
-                    console.error('处理帧错误:', error);
-                }
-                
-                animationId = requestAnimationFrame(processFrame);
-            };
-            
-            processFrame();
         }
         
         function takePhoto() {
@@ -1321,11 +1146,7 @@
             
             for (let command of voiceCommands) {
                 if (lowerText.includes(command.toLowerCase()) || lowerText.includes(command)) {
-                    if (command === '321' || command === '开始') {
-                        takePhoto();
-                    } else {
-                        takePhoto();
-                    }
+                    takePhoto();
                     break;
                 }
             }
@@ -1356,17 +1177,17 @@
             const preset = beautyPresets[style];
             if (!preset) return;
             
-            faceSlimSlider.value = preset.faceSlim;
-            eyeEnlargeSlider.value = preset.eyeEnlarge;
             smoothSlider.value = preset.smooth;
             whiteningSlider.value = preset.whitening;
             brightenSlider.value = preset.brighten;
+            faceSlimSlider.value = preset.faceSlim;
+            eyeEnlargeSlider.value = preset.eyeEnlarge;
             
-            document.getElementById('faceSlimValue').textContent = preset.faceSlim;
-            document.getElementById('eyeEnlargeValue').textContent = preset.eyeEnlarge;
             document.getElementById('smoothValue').textContent = preset.smooth;
             document.getElementById('whiteningValue').textContent = preset.whitening;
             document.getElementById('brightenValue').textContent = preset.brighten;
+            document.getElementById('faceSlimValue').textContent = preset.faceSlim;
+            document.getElementById('eyeEnlargeValue').textContent = preset.eyeEnlarge;
         }
         
         beautyBtns.forEach(btn => {
@@ -1386,14 +1207,6 @@
             });
         });
         
-        faceSlimSlider.addEventListener('input', () => {
-            document.getElementById('faceSlimValue').textContent = faceSlimSlider.value;
-        });
-        
-        eyeEnlargeSlider.addEventListener('input', () => {
-            document.getElementById('eyeEnlargeValue').textContent = eyeEnlargeSlider.value;
-        });
-        
         smoothSlider.addEventListener('input', () => {
             document.getElementById('smoothValue').textContent = smoothSlider.value;
         });
@@ -1404,6 +1217,14 @@
         
         brightenSlider.addEventListener('input', () => {
             document.getElementById('brightenValue').textContent = brightenSlider.value;
+        });
+        
+        faceSlimSlider.addEventListener('input', () => {
+            document.getElementById('faceSlimValue').textContent = faceSlimSlider.value;
+        });
+        
+        eyeEnlargeSlider.addEventListener('input', () => {
+            document.getElementById('eyeEnlargeValue').textContent = eyeEnlargeSlider.value;
         });
         
         brightnessSlider.addEventListener('input', () => {
@@ -1432,8 +1253,6 @@
         
         captureBtn.addEventListener('click', takePhoto);
         voiceBtn.addEventListener('click', toggleVoice);
-        
-        initModels();
     </script>
 </body>
 </html>
