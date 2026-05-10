@@ -1,736 +1,209 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI补光相机 - 智能美颜</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 10px;
-        }
-        
-        .app-container {
-            background: rgba(30, 41, 59, 0.98);
-            border-radius: 28px;
-            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
-            padding: 16px;
-            width: 100%;
-            max-width: 460px;
-        }
-        
-        .header {
-            text-align: center;
-            margin-bottom: 12px;
-        }
-        
-        .header h1 {
-            font-size: 18px;
-            color: #fff;
-            margin-bottom: 4px;
-            font-weight: 700;
-        }
-        
-        .header p {
-            font-size: 11px;
-            color: #94a3b8;
-        }
-        
-        .camera-container {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 3/4;
-            border-radius: 20px;
-            overflow: hidden;
-            background: #000;
-            margin-bottom: 14px;
-        }
-        
-        #cameraPreview {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: none;
-        }
-        
-        .camera-placeholder {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: linear-gradient(135deg, #1e293b 0%, #0f0f23 100%);
-            color: #94a3b8;
-            padding: 24px;
-            text-align: center;
-        }
-        
-        .camera-placeholder.hidden {
-            display: none;
-        }
-        
-        .camera-placeholder .icon {
-            font-size: 56px;
-            margin-bottom: 14px;
-        }
-        
-        .camera-placeholder h3 {
-            color: #fff;
-            font-size: 16px;
-            margin-bottom: 8px;
-        }
-        
-        .camera-placeholder p {
-            font-size: 12px;
-            line-height: 1.6;
-        }
-        
-        .enable-camera-btn {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            color: white;
-            border: none;
-            border-radius: 14px;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.25s;
-            margin-bottom: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        
-        .enable-camera-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
-        }
-        
-        .section-title {
-            font-size: 13px;
-            font-weight: 700;
-            color: #fff;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .section-title::before {
-            content: '';
-            width: 4px;
-            height: 14px;
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            border-radius: 2px;
-        }
-        
-        .beauty-presets {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-        
-        .beauty-btn {
-            height: 52px;
-            border: 2px solid #334155;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.25s;
-            font-size: 11px;
-            color: #94a3b8;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 3px;
-            background: #1e293b;
-        }
-        
-        .beauty-btn:hover {
-            border-color: #6366f1;
-            transform: translateY(-2px);
-        }
-        
-        .beauty-btn.active {
-            border-color: #6366f1;
-            background: #312e81;
-            color: #fff;
-        }
-        
-        .beauty-icon {
-            font-size: 18px;
-        }
-        
-        .beauty-name {
-            font-weight: 600;
-        }
-        
-        .ai-sliders {
-            background: #1e293b;
-            border-radius: 14px;
-            padding: 12px;
-            margin-bottom: 12px;
-        }
-        
-        .slider-row {
-            margin-bottom: 10px;
-        }
-        
-        .slider-row:last-child {
-            margin-bottom: 0;
-        }
-        
-        .slider-label {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 6px;
-        }
-        
-        .slider-label span {
-            font-size: 11px;
-            color: #cbd5e1;
-            font-weight: 500;
-        }
-        
-        .slider-value {
-            font-size: 11px;
-            color: #818cf8;
-            font-weight: 700;
-        }
-        
-        .beauty-slider {
-            width: 100%;
-            height: 6px;
-            -webkit-appearance: none;
-            appearance: none;
-            background: #334155;
-            border-radius: 3px;
-            outline: none;
-            cursor: pointer;
-        }
-        
-        .beauty-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 18px;
-            height: 18px;
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 3px 10px rgba(99, 102, 241, 0.5);
-        }
-        
-        .color-presets {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-        
-        .preset-btn {
-            height: 48px;
-            border: 2px solid #334155;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.25s;
-            font-size: 10px;
-            color: #94a3b8;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 3px;
-            background: #1e293b;
-        }
-        
-        .preset-btn:hover {
-            border-color: #6366f1;
-            transform: translateY(-2px);
-        }
-        
-        .preset-btn.active {
-            border-color: #6366f1;
-            background: #312e81;
-            color: #fff;
-        }
-        
-        .preset-color {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        }
-        
-        .warm { background: linear-gradient(135deg, #fef3c7 0%, #fbbf24 100%); }
-        .cool { background: linear-gradient(135deg, #dbeafe 0%, #3b82f6 100%); }
-        .natural { background: linear-gradient(135deg, #fef9c3 0%, #facc15 100%); }
-        .sunset { background: linear-gradient(135deg, #fecaca 0%, #f87171 100%); }
-        
-        .brightness-control {
-            margin-bottom: 12px;
-        }
-        
-        .brightness-slider {
-            width: 100%;
-            height: 8px;
-            -webkit-appearance: none;
-            appearance: none;
-            background: linear-gradient(90deg, #1e293b 0%, #6366f1 50%, #8b5cf6 100%);
-            border-radius: 4px;
-            outline: none;
-            cursor: pointer;
-        }
-        
-        .brightness-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 22px;
-            height: 22px;
-            background: #fff;
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 3px 12px rgba(0,0,0,0.4);
-        }
-        
-        .brightness-value {
-            text-align: right;
-            font-size: 11px;
-            color: #64748b;
-            margin-top: 5px;
-        }
-        
-        .action-buttons {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-        }
-        
-        .action-btn {
-            padding: 14px;
-            border: none;
-            border-radius: 14px;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.25s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-        }
-        
-        .action-btn:hover {
-            transform: translateY(-2px);
-        }
-        
-        .toggle-light-btn {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            color: white;
-        }
-        
-        .toggle-light-btn.off {
-            background: #334155;
-            color: #64748b;
-        }
-        
-        .voice-btn {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-        }
-        
-        .voice-btn.active {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-        }
-        
-        .capture-btn {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: white;
-        }
-        
-        .voice-hint {
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.25);
-            border-radius: 12px;
-            padding: 10px 12px;
-            margin-bottom: 12px;
-            display: none;
-        }
-        
-        .voice-hint.active {
-            display: block;
-        }
-        
-        .voice-hint h4 {
-            color: #10b981;
-            font-size: 12px;
-            margin-bottom: 6px;
-            font-weight: 600;
-        }
-        
-        .voice-hint ul {
-            list-style: none;
-            font-size: 11px;
-            color: #94a3b8;
-        }
-        
-        .voice-hint li {
-            padding: 2px 0;
-        }
-        
-        .voice-hint li::before {
-            content: '🎯 ';
-        }
-        
-        .status-bar {
-            background: rgba(99, 102, 241, 0.12);
-            border-radius: 10px;
-            padding: 8px 12px;
-            margin-bottom: 12px;
-            display: none;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #10b981;
-        }
-        
-        .status-text {
-            font-size: 11px;
-            color: #94a3b8;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>补光相机</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:linear-gradient(135deg,#0f0f23,#1a1a2e);min-height:100vh;display:flex;justify-content:center;align-items:center;padding:10px}
+.app{background:rgba(30,41,59,0.98);border-radius:28px;padding:16px;width:100%;max-width:460px}
+.header{text-align:center;margin-bottom:12px}
+.header h1{font-size:18px;color:#fff;font-weight:700}
+.header p{font-size:11px;color:#94a3b8;margin-top:4px}
+.camera-box{position:relative;width:100%;aspect-ratio:3/4;border-radius:20px;overflow:hidden;background:#000;margin-bottom:14px}
+#video{width:100%;height:100%;object-fit:cover;display:none}
+.placeholder{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;background:linear-gradient(135deg,#1e293b,#0f0f23);color:#94a3b8}
+.placeholder.hidden{display:none}
+.placeholder .icon{font-size:48px;margin-bottom:12px}
+.placeholder h3{color:#fff;font-size:16px;margin-bottom:8px}
+.placeholder p{font-size:12px}
+.btn{width:100%;padding:16px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .25s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(99,102,241,0.4)}
+.section{font-size:13px;font-weight:700;color:#fff;margin-bottom:10px}
+.colors{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.color-btn{height:48px;border:2px solid #334155;border-radius:12px;cursor:pointer;transition:all .25s;font-size:10px;color:#94a3b8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:#1e293b}
+.color-btn:hover{border-color:#6366f1;transform:translateY(-2px)}
+.color-btn.active{border-color:#6366f1;background:#312e81;color:#fff}
+.color-dot{width:20px;height:20px;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3)}
+.warm{background:linear-gradient(135deg,#fef3c7,#fbbf24)}
+.cool{background:linear-gradient(135deg,#dbeafe,#3b82f6)}
+.natural{background:linear-gradient(135deg,#fef9c3,#facc15)}
+.sunset{background:linear-gradient(135deg,#fecaca,#f87171)}
+.slider-box{margin-bottom:12px}
+.slider-label{display:flex;justify-content:space-between;font-size:11px;color:#cbd5e1;margin-bottom:6px}
+.slider{width:100%;height:8px;-webkit-appearance:none;background:linear-gradient(90deg,#1e293b,#6366f1 50%,#8b5cf6);border-radius:4px;outline:none;cursor:pointer}
+.slider::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;background:#fff;border-radius:50%;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,0.4)}
+.slider-val{text-align:right;font-size:11px;color:#64748b;margin-top:5px}
+.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.action-btn{padding:14px;border:none;border-radius:14px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .25s}
+.action-btn:hover{transform:translateY(-2px)}
+.light-btn{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff}
+.light-btn.off{background:#334155;color:#64748b}
+.voice-btn{background:linear-gradient(135deg,#10b981,#059669);color:#fff}
+.voice-btn.active{background:linear-gradient(135deg,#f59e0b,#d97706)}
+.capture-btn{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff}
+.status{background:rgba(99,102,241,0.12);border-radius:10px;padding:8px 12px;margin-bottom:12px;display:none;align-items:center;gap:8px}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#10b981}
+.status-text{font-size:11px;color:#94a3b8}
+</style>
 </head>
 <body>
-    <div class="app-container">
-        <div class="header">
-            <h1>✨ AI补光相机</h1>
-            <p>专业级智能美颜 · 实时补光</p>
-        </div>
-        
-        <div class="camera-container">
-            <video id="cameraPreview" autoplay playsinline></video>
-            <div class="camera-placeholder" id="cameraPlaceholder">
-                <span class="icon">📷</span>
-                <h3>相机就绪</h3>
-                <p>点击下方按钮开启相机</p>
-            </div>
-        </div>
-        
-        <button class="enable-camera-btn" id="enableCameraBtn">
-            <span>📸</span>
-            <span id="cameraBtnText">开启相机</span>
-        </button>
-        
-        <div class="status-bar" id="statusBar">
-            <div class="status-dot"></div>
-            <span class="status-text">补光效果运行中</span>
-        </div>
-        
-        <div class="section-title">🎨 补光模式</div>
-        <div class="color-presets">
-            <button class="preset-btn active" data-color="warm">
-                <div class="preset-color warm"></div>
-                <span>暖光</span>
-            </button>
-            <button class="preset-btn" data-color="cool">
-                <div class="preset-color cool"></div>
-                <span>冷光</span>
-            </button>
-            <button class="preset-btn" data-color="natural">
-                <div class="preset-color natural"></div>
-                <span>自然</span>
-            </button>
-            <button class="preset-btn" data-color="sunset">
-                <div class="preset-color sunset"></div>
-                <span>日落</span>
-            </button>
-        </div>
-        
-        <div class="section-title">🔆 补光强度</div>
-        <div class="brightness-control">
-            <input type="range" class="brightness-slider" id="brightnessSlider" min="0" max="100" value="30">
-            <div class="brightness-value" id="brightnessValue">强度: 30%</div>
-        </div>
-        
-        <div class="voice-hint" id="voiceHint">
-            <h4>🎤 语音控制已开启</h4>
-            <ul>
-                <li>说"拍照"或"茄子"即可自拍</li>
-                <li>说"开始"或"321"倒计时拍照</li>
-            </ul>
-        </div>
-        
-        <div class="action-buttons">
-            <button class="action-btn toggle-light-btn" id="toggleLightBtn">
-                💡 补光
-            </button>
-            <button class="action-btn voice-btn" id="voiceBtn">
-                🎤 语音
-            </button>
-            <button class="action-btn capture-btn" id="captureBtn">
-                📷 拍照
-            </button>
-        </div>
-    </div>
+<div class="app">
+<div class="header">
+<h1>✨ 补光相机</h1>
+<p>实时补光 · 语音拍照</p>
+</div>
 
-    <script>
-        const cameraPreview = document.getElementById('cameraPreview');
-        const cameraPlaceholder = document.getElementById('cameraPlaceholder');
-        const enableCameraBtn = document.getElementById('enableCameraBtn');
-        const cameraBtnText = document.getElementById('cameraBtnText');
-        const statusBar = document.getElementById('statusBar');
-        const brightnessSlider = document.getElementById('brightnessSlider');
-        const brightnessValue = document.getElementById('brightnessValue');
-        const toggleLightBtn = document.getElementById('toggleLightBtn');
-        const captureBtn = document.getElementById('captureBtn');
-        const presetBtns = document.querySelectorAll('.preset-btn');
-        const voiceBtn = document.getElementById('voiceBtn');
-        const voiceHint = document.getElementById('voiceHint');
-        
-        const presetColors = {
-            warm: { r: 255, g: 230, b: 190 },
-            cool: { r: 200, g: 225, b: 255 },
-            natural: { r: 255, g: 250, b: 220 },
-            sunset: { r: 255, g: 210, b: 200 }
-        };
-        
-        let currentPreset = 'warm';
-        let currentBrightness = 30;
-        let isLightOn = true;
-        let isCameraOn = false;
-        let isVoiceOn = false;
-        let stream = null;
-        let recognition = null;
-        
-        const voiceCommands = ['拍照', '茄子', 'cheese', '321', '开始', '咔嚓', '拍一张', '自拍'];
-        
-        async function enableCamera() {
-            cameraPlaceholder.innerHTML = `
-                <div style="font-size: 48px; margin-bottom: 12px;">📷</div>
-                <h3>正在启动相机...</h3>
-                <p>请稍候</p>
-            `;
-            
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'user', width: 1280, height: 720 },
-                    audio: false
-                });
-                
-                cameraPreview.srcObject = stream;
-                await cameraPreview.play();
-                
-                cameraPreview.style.display = 'block';
-                cameraPlaceholder.classList.add('hidden');
-                enableCameraBtn.innerHTML = '<span>⏸️</span><span>关闭相机</span>';
-                cameraBtnText.textContent = '关闭相机';
-                statusBar.style.display = 'flex';
-                isCameraOn = true;
-                
-            } catch (err) {
-                console.error('相机错误:', err);
-                cameraPlaceholder.innerHTML = `
-                    <span style="font-size: 48px; margin-bottom: 12px;">❌</span>
-                    <h3>无法访问相机</h3>
-                    <p>请检查相机权限设置</p>
-                `;
-            }
-        }
-        
-        function disableCamera() {
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-                stream = null;
-            }
-            
-            cameraPreview.srcObject = null;
-            cameraPreview.style.display = 'none';
-            
-            cameraPlaceholder.classList.remove('hidden');
-            cameraPlaceholder.innerHTML = `
-                <span style="font-size: 48px; margin-bottom: 12px;">📷</span>
-                <h3>相机就绪</h3>
-                <p>点击下方按钮开启相机</p>
-            `;
-            
-            enableCameraBtn.innerHTML = '<span>📸</span><span>开启相机</span>';
-            cameraBtnText.textContent = '开启相机';
-            statusBar.style.display = 'none';
-            isCameraOn = false;
-        }
-        
-        function takePhoto() {
-            if (!isCameraOn) {
-                alert('请先开启相机');
-                return;
-            }
-            
-            const canvas = document.createElement('canvas');
-            canvas.width = cameraPreview.videoWidth;
-            canvas.height = cameraPreview.videoHeight;
-            const ctx = canvas.getContext('2d');
-            
-            ctx.drawImage(cameraPreview, 0, 0);
-            
-            if (isLightOn && currentBrightness > 0) {
-                applyLightEffect(ctx, canvas.width, canvas.height);
-            }
-            
-            const link = document.createElement('a');
-            link.download = `photo_${Date.now()}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-            
-            captureBtn.textContent = '✅ 已保存';
-            setTimeout(() => {
-                captureBtn.innerHTML = '📷 拍照';
-            }, 1500);
-        }
-        
-        function applyLightEffect(ctx, width, height) {
-            const color = presetColors[currentPreset];
-            const alpha = currentBrightness / 100;
-            
-            const gradient = ctx.createRadialGradient(
-                width * 0.5, height * 0.3, 0,
-                width * 0.5, height * 0.3, Math.max(width, height) * 0.7
-            );
-            
-            gradient.addColorStop(0, `rgba(${color.r}, ${color.g}, ${color.b}, ${alpha * 0.3})`);
-            gradient.addColorStop(1, `rgba(${color.r}, ${color.g}, ${color.b}, 0)`);
-            
-            ctx.save();
-            ctx.globalCompositeOperation = 'multiply';
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, width, height);
-            ctx.restore();
-        }
-        
-        function initVoiceRecognition() {
-            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                return false;
-            }
-            
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRecognition();
-            recognition.continuous = true;
-            recognition.interimResults = true;
-            recognition.lang = 'zh-CN';
-            
-            recognition.onstart = () => {
-                voiceBtn.classList.add('active');
-                voiceHint.classList.add('active');
-                isVoiceOn = true;
-            };
-            
-            recognition.onend = () => {
-                if (isVoiceOn) {
-                    try { recognition.start(); } catch (err) { isVoiceOn = false; voiceBtn.classList.remove('active'); voiceHint.classList.remove('active'); }
-                }
-            };
-            
-            recognition.onerror = (event) => {
-                if (event.error === 'not-allowed') {
-                    alert('请允许麦克风权限');
-                    toggleVoice();
-                }
-            };
-            
-            recognition.onresult = (event) => {
-                let finalTranscript = '';
-                for (let i = event.resultIndex; i < event.results.length; i++) {
-                    if (event.results[i].isFinal) {
-                        finalTranscript += event.results[i][0].transcript;
-                    }
-                }
-                if (finalTranscript) {
-                    checkVoiceCommand(finalTranscript);
-                }
-            };
-            
-            return true;
-        }
-        
-        function checkVoiceCommand(text) {
-            const lowerText = text.toLowerCase();
-            for (let command of voiceCommands) {
-                if (lowerText.includes(command.toLowerCase())) {
-                    takePhoto();
-                    break;
-                }
-            }
-        }
-        
-        function toggleVoice() {
-            if (isVoiceOn) {
-                recognition.stop();
-                voiceBtn.classList.remove('active');
-                voiceHint.classList.remove('active');
-                isVoiceOn = false;
-                return;
-            }
-            
-            if (!recognition) {
-                if (!initVoiceRecognition()) return;
-            }
-            
-            try { recognition.start(); } catch (err) { console.error(err); }
-        }
-        
-        presetBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                presetBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentPreset = btn.dataset.color;
-            });
-        });
-        
-        brightnessSlider.addEventListener('input', () => {
-            currentBrightness = parseInt(brightnessSlider.value);
-            brightnessValue.textContent = `强度: ${currentBrightness}%`;
-        });
-        
-        toggleLightBtn.addEventListener('click', () => {
-            isLightOn = !isLightOn;
-            if (isLightOn) {
-                toggleLightBtn.innerHTML = '💡 补光';
-                toggleLightBtn.classList.remove('off');
-            } else {
-                toggleLightBtn.innerHTML = '🔴 关灯';
-                toggleLightBtn.classList.add('off');
-            }
-        });
-        
-        enableCameraBtn.addEventListener('click', () => {
-            if (isCameraOn) disableCamera();
-            else enableCamera();
-        });
-        
-        captureBtn.addEventListener('click', takePhoto);
-        voiceBtn.addEventListener('click', toggleVoice);
-    </script>
+<div class="camera-box">
+<video id="video" autoplay playsinline></video>
+<div class="placeholder" id="placeholder">
+<span class="icon">📷</span>
+<h3>相机就绪</h3>
+<p>点击下方按钮开启相机</p>
+</div>
+</div>
+
+<button class="btn" id="startBtn">
+<span>📸</span>
+<span id="btnText">开启相机</span>
+</button>
+
+<div class="status" id="statusBar">
+<div class="status-dot"></div>
+<span class="status-text">补光效果运行中</span>
+</div>
+
+<div class="section">💡 补光色温</div>
+<div class="colors">
+<button class="color-btn active" data-color="warm"><div class="color-dot warm"></div><span>暖光</span></button>
+<button class="color-btn" data-color="cool"><div class="color-dot cool"></div><span>冷光</span></button>
+<button class="color-btn" data-color="natural"><div class="color-dot natural"></div><span>自然</span></button>
+<button class="color-btn" data-color="sunset"><div class="color-dot sunset"></div><span>日落</span></button>
+</div>
+
+<div class="slider-box">
+<div class="section">🔆 补光强度</div>
+<input type="range" class="slider" id="brightSlider" min="0" max="100" value="40">
+<div class="slider-val" id="brightVal">强度: 40%</div>
+</div>
+
+<div class="actions">
+<button class="action-btn light-btn" id="lightBtn">💡 补光</button>
+<button class="action-btn voice-btn" id="voiceBtn">🎤 语音</button>
+<button class="action-btn capture-btn" id="captureBtn">📷 拍照</button>
+</div>
+</div>
+
+<script>
+const video=document.getElementById('video');
+const placeholder=document.getElementById('placeholder');
+const startBtn=document.getElementById('startBtn');
+const btnText=document.getElementById('btnText');
+const statusBar=document.getElementById('statusBar');
+const brightSlider=document.getElementById('brightSlider');
+const brightVal=document.getElementById('brightVal');
+const lightBtn=document.getElementById('lightBtn');
+const captureBtn=document.getElementById('captureBtn');
+const voiceBtn=document.getElementById('voiceBtn');
+const colorBtns=document.querySelectorAll('.color-btn');
+
+const colors={warm:{r:255,g:230,b:190},cool:{r:200,g:225,b:255},natural:{r:255,g:250,b:220},sunset:{r:255,g:210,b:200}};
+
+let currentColor='warm';
+let bright=40;
+let lightOn=true;
+let cameraOn=false;
+let stream=null;
+let recognition=null;
+let voiceOn=false;
+
+async function startCamera(){
+placeholder.innerHTML='<span class="icon">📷</span><h3>启动中...</h3><p>请稍候</p>';
+try{
+stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:1280,height:720},audio:false});
+video.srcObject=stream;
+await video.play();
+video.style.display='block';
+placeholder.classList.add('hidden');
+startBtn.innerHTML='<span>⏸️</span><span>关闭相机</span>';
+btnText.textContent='关闭相机';
+statusBar.style.display='flex';
+cameraOn=true;
+}catch(err){
+placeholder.innerHTML='<span class="icon">❌</span><h3>无法访问相机</h3><p>请检查权限设置</p>';
+}
+}
+
+function stopCamera(){
+if(stream)stream.getTracks().forEach(t=>t.stop());
+stream=null;
+video.srcObject=null;
+video.style.display='none';
+placeholder.classList.remove('hidden');
+placeholder.innerHTML='<span class="icon">📷</span><h3>相机就绪</h3><p>点击下方按钮开启相机</p>';
+startBtn.innerHTML='<span>📸</span><span>开启相机</span>';
+btnText.textContent='开启相机';
+statusBar.style.display='none';
+cameraOn=false;
+}
+
+function takePhoto(){
+if(!cameraOn){alert('请先开启相机');return;}
+const canvas=document.createElement('canvas');
+canvas.width=video.videoWidth;
+canvas.height=video.videoHeight;
+const ctx=canvas.getContext('2d');
+ctx.drawImage(video,0,0);
+if(lightOn&&bright>0){
+const c=colors[currentColor];
+const a=bright/100;
+const g=ctx.createRadialGradient(canvas.width*.5,canvas.height*.3,0,canvas.width*.5,canvas.height*.3,Math.max(canvas.width,canvas.height)*.7);
+g.addColorStop(0,`rgba(${c.r},${c.g},${c.b},${a*.4})`);
+g.addColorStop(1,`rgba(${c.r},${c.g},${c.b},0)`);
+ctx.save();
+ctx.globalCompositeOperation='multiply';
+ctx.fillStyle=g;
+ctx.fillRect(0,0,canvas.width,canvas.height);
+ctx.restore();
+}
+const a=document.createElement('a');
+a.download=`photo_${Date.now()}.png`;
+a.href=canvas.toDataURL('image/png');
+a.click();
+captureBtn.textContent='✅ 已保存';
+setTimeout(()=>captureBtn.innerHTML='📷 拍照',1500);
+}
+
+function initVoice(){
+if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window))return false;
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+recognition=new SR();
+recognition.continuous=true;
+recognition.interimResults=true;
+recognition.lang='zh-CN';
+recognition.onstart=()=>{voiceBtn.classList.add('active');voiceOn=true};
+recognition.onend=()=>{if(voiceOn)try{recognition.start()}catch(e){voiceOn=false;voiceBtn.classList.remove('active')}};
+recognition.onerror=e=>{if(e.error==='not-allowed'){alert('请允许麦克风权限');toggleVoice()}};
+recognition.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal)t+=e.results[i][0].transcript;if(t)['拍照','茄子','cheese','321','开始','咔嚓','自拍'].some(c=>t.includes(c))&&takePhoto()};
+return true;
+}
+
+function toggleVoice(){
+if(voiceOn){recognition.stop();voiceBtn.classList.remove('active');voiceOn=false;return}
+if(!recognition&&!initVoice())return;
+try{recognition.start()}catch(e){}
+}
+
+startBtn.onclick=()=>cameraOn?stopCamera():startCamera();
+captureBtn.onclick=takePhoto;
+voiceBtn.onclick=toggleVoice;
+
+colorBtns.forEach(b=>b.onclick=()=>{colorBtns.forEach(x=>x.classList.remove('active'));b.classList.add('active');currentColor=b.dataset.color});
+
+brightSlider.oninput=()=>{bright=parseInt(brightSlider.value);brightVal.textContent=`强度: ${bright}%`};
+
+lightBtn.onclick=()=>{lightOn=!lightOn;lightBtn.innerHTML=lightOn?'💡 补光':'🔴 关灯';lightBtn.classList.toggle('off',!lightOn)};
+</script>
 </body>
 </html>
