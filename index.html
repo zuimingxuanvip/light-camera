@@ -461,11 +461,11 @@
         
         <div class="section-title">🎨 美颜模式</div>
         <div class="beauty-presets">
-            <button class="beauty-btn none" data-style="none">
+            <button class="beauty-btn none active" data-style="none">
                 <span class="beauty-icon">🚫</span>
                 <span class="beauty-name">原图</span>
             </button>
-            <button class="beauty-btn natural active" data-style="natural">
+            <button class="beauty-btn natural" data-style="natural">
                 <span class="beauty-icon">🌸</span>
                 <span class="beauty-name">自然</span>
             </button>
@@ -484,30 +484,16 @@
             <div class="slider-row">
                 <div class="slider-label">
                     <span>✨ 磨皮</span>
-                    <span class="slider-value" id="smoothValue">15</span>
+                    <span class="slider-value" id="smoothValue">0</span>
                 </div>
-                <input type="range" class="beauty-slider" id="smoothSlider" min="0" max="100" value="15">
+                <input type="range" class="beauty-slider" id="smoothSlider" min="0" max="100" value="0">
             </div>
             <div class="slider-row">
                 <div class="slider-label">
                     <span>💡 美白</span>
-                    <span class="slider-value" id="whiteningValue">10</span>
+                    <span class="slider-value" id="whiteningValue">0</span>
                 </div>
-                <input type="range" class="beauty-slider" id="whiteningSlider" min="0" max="100" value="10">
-            </div>
-            <div class="slider-row">
-                <div class="slider-label">
-                    <span>👋 瘦脸</span>
-                    <span class="slider-value" id="faceSlimValue">10</span>
-                </div>
-                <input type="range" class="beauty-slider" id="faceSlimSlider" min="0" max="100" value="10">
-            </div>
-            <div class="slider-row">
-                <div class="slider-label">
-                    <span>👁️ 大眼</span>
-                    <span class="slider-value" id="eyeEnlargeValue">8</span>
-                </div>
-                <input type="range" class="beauty-slider" id="eyeEnlargeSlider" min="0" max="100" value="8">
+                <input type="range" class="beauty-slider" id="whiteningSlider" min="0" max="100" value="0">
             </div>
         </div>
         
@@ -533,8 +519,8 @@
         
         <div class="section-title">🔆 补光强度</div>
         <div class="brightness-control">
-            <input type="range" class="brightness-slider" id="brightnessSlider" min="0" max="100" value="30">
-            <div class="brightness-value" id="brightnessValue">强度: 30%</div>
+            <input type="range" class="brightness-slider" id="brightnessSlider" min="0" max="100" value="40">
+            <div class="brightness-value" id="brightnessValue">强度: 40%</div>
         </div>
         
         <div class="voice-hint" id="voiceHint">
@@ -576,26 +562,24 @@
         
         const smoothSlider = document.getElementById('smoothSlider');
         const whiteningSlider = document.getElementById('whiteningSlider');
-        const faceSlimSlider = document.getElementById('faceSlimSlider');
-        const eyeEnlargeSlider = document.getElementById('eyeEnlargeSlider');
         
         const presetColors = {
-            warm: { r: 255, g: 200, b: 150 },
-            cool: { r: 200, g: 220, b: 255 },
-            natural: { r: 255, g: 245, b: 200 },
-            sunset: { r: 255, g: 180, b: 170 }
+            warm: { r: 255, g: 220, b: 170 },
+            cool: { r: 220, g: 235, b: 255 },
+            natural: { r: 255, g: 250, b: 220 },
+            sunset: { r: 255, g: 200, b: 190 }
         };
         
         const beautyPresets = {
-            none: { smooth: 0, whitening: 0, faceSlim: 0, eyeEnlarge: 0 },
-            natural: { smooth: 15, whitening: 10, faceSlim: 10, eyeEnlarge: 8 },
-            glamour: { smooth: 30, whitening: 25, faceSlim: 20, eyeEnlarge: 15 },
-            ai: { smooth: 25, whitening: 20, faceSlim: 15, eyeEnlarge: 12 }
+            none: { smooth: 0, whitening: 0 },
+            natural: { smooth: 35, whitening: 25 },
+            glamour: { smooth: 55, whitening: 45 },
+            ai: { smooth: 45, whitening: 35 }
         };
         
         let currentPreset = 'warm';
-        let currentBeautyStyle = 'natural';
-        let currentBrightness = 30;
+        let currentBeautyStyle = 'none';
+        let currentBrightness = 40;
         let isLightOn = true;
         let isCameraOn = false;
         let isVoiceOn = false;
@@ -716,183 +700,89 @@
         function applyProfessionalBeauty(ctx, width, height) {
             const smoothStrength = parseInt(smoothSlider.value) / 100;
             const whiteningStrength = parseInt(whiteningSlider.value) / 100;
-            const faceSlimStrength = parseInt(faceSlimSlider.value) / 100;
-            const eyeEnlargeStrength = parseInt(eyeEnlargeSlider.value) / 100;
             
-            if (smoothStrength > 0 || whiteningStrength > 0) {
-                const imageData = ctx.getImageData(0, 0, width, height);
-                const data = imageData.data;
-                
-                const blurKernel = Math.floor(2 + smoothStrength * 2);
-                
-                for (let y = 0; y < height; y++) {
-                    for (let x = 0; x < width; x++) {
-                        const idx = (y * width + x) * 4;
+            if (smoothStrength === 0 && whiteningStrength === 0) return;
+            
+            const imageData = ctx.getImageData(0, 0, width, height);
+            const data = imageData.data;
+            
+            const blurRadius = Math.floor(1 + smoothStrength * 2);
+            
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const idx = (y * width + x) * 4;
+                    
+                    let r = data[idx];
+                    let g = data[idx + 1];
+                    let b = data[idx + 2];
+                    
+                    let isSkin = isSkinColor(r, g, b);
+                    
+                    if (smoothStrength > 0) {
+                        let blurR = 0, blurG = 0, blurB = 0, count = 0;
                         
-                        let r = data[idx];
-                        let g = data[idx + 1];
-                        let b = data[idx + 2];
-                        
-                        let isSkin = isSkinColor(r, g, b);
-                        
-                        if (smoothStrength > 0 && isSkin) {
-                            let blurR = 0, blurG = 0, blurB = 0, count = 0;
-                            
-                            for (let dy = -blurKernel; dy <= blurKernel; dy++) {
-                                for (let dx = -blurKernel; dx <= blurKernel; dx++) {
-                                    const nx = Math.min(Math.max(0, x + dx), width - 1);
-                                    const ny = Math.min(Math.max(0, y + dy), height - 1);
-                                    const nidx = (ny * width + nx) * 4;
-                                    
-                                    const dist = Math.sqrt(dx * dx + dy * dy);
-                                    if (dist <= blurKernel) {
-                                        blurR += data[nidx];
-                                        blurG += data[nidx + 1];
-                                        blurB += data[nidx + 2];
-                                        count++;
-                                    }
+                        for (let dy = -blurRadius; dy <= blurRadius; dy++) {
+                            for (let dx = -blurRadius; dx <= blurRadius; dx++) {
+                                const nx = Math.min(Math.max(0, x + dx), width - 1);
+                                const ny = Math.min(Math.max(0, y + dy), height - 1);
+                                const nidx = (ny * width + nx) * 4;
+                                
+                                const dist = Math.sqrt(dx * dx + dy * dy);
+                                if (dist <= blurRadius) {
+                                    blurR += data[nidx];
+                                    blurG += data[nidx + 1];
+                                    blurB += data[nidx + 2];
+                                    count++;
                                 }
                             }
-                            
-                            blurR /= count;
-                            blurG /= count;
-                            blurB /= count;
-                            
-                            const blendFactor = smoothStrength * 0.6;
-                            r = r * (1 - blendFactor) + blurR * blendFactor;
-                            g = g * (1 - blendFactor) + blurG * blendFactor;
-                            b = b * (1 - blendFactor) + blurB * blendFactor;
                         }
                         
-                        if (whiteningStrength > 0 && isSkin) {
-                            const factor = 1 + whiteningStrength * 0.15;
-                            r = Math.min(255, r * factor);
-                            g = Math.min(255, g * factor);
-                            b = Math.min(255, b * factor);
-                        }
+                        blurR /= count;
+                        blurG /= count;
+                        blurB /= count;
                         
-                        data[idx] = Math.min(255, Math.max(0, r));
-                        data[idx + 1] = Math.min(255, Math.max(0, g));
-                        data[idx + 2] = Math.min(255, Math.max(0, b));
+                        const blend = smoothStrength * 0.6;
+                        if (isSkin) {
+                            r = r * (1 - blend) + blurR * blend;
+                            g = g * (1 - blend) + blurG * blend;
+                            b = b * (1 - blend) + blurB * blend;
+                        }
                     }
+                    
+                    if (whiteningStrength > 0 && isSkin) {
+                        const avg = (r + g + b) / 3;
+                        const whiteLevel = 180 + whiteningStrength * 35;
+                        const newAvg = avg + (whiteLevel - avg) * whiteningStrength * 0.5;
+                        const factor = newAvg / (avg || 1);
+                        
+                        r = Math.min(255, r * factor);
+                        g = Math.min(255, g * factor);
+                        b = Math.min(255, b * factor);
+                    }
+                    
+                    data[idx] = Math.min(255, Math.max(0, r));
+                    data[idx + 1] = Math.min(255, Math.max(0, g));
+                    data[idx + 2] = Math.min(255, Math.max(0, b));
                 }
-                
-                ctx.putImageData(imageData, 0, 0);
             }
             
-            if (faceSlimStrength > 0 || eyeEnlargeStrength > 0) {
-                applyFaceWarp(ctx, width, height, faceSlimStrength, eyeEnlargeStrength);
-            }
+            ctx.putImageData(imageData, 0, 0);
         }
         
         function isSkinColor(r, g, b) {
-            if (r < 80 || g < 50 || b < 30) return false;
+            if (r < 95 || g < 40 || b < 20) return false;
             if (r < g || r < b) return false;
             
             const max = Math.max(r, g, b);
             const min = Math.min(r, g, b);
-            const sat = max === 0 ? 0 : (max - min) / max;
+            const sat = (max - min) / max;
             
-            if (sat < 0.05 || sat > 0.6) return false;
-            
-            return true;
-        }
-        
-        function applyFaceWarp(ctx, width, height, faceSlimStrength, eyeEnlargeStrength) {
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = width;
-            tempCanvas.height = height;
-            const tempCtx = tempCanvas.getContext('2d');
-            tempCtx.drawImage(canvasPreview, 0, 0);
-            
-            const outputImage = ctx.createImageData(width, height);
-            const sourceImage = tempCtx.getImageData(0, 0, width, height);
-            
-            const centerX = width / 2;
-            const centerY = height / 2;
-            const faceRadius = Math.min(width, height) * 0.35;
-            
-            const leftEyeX = centerX - width * 0.16;
-            const rightEyeX = centerX + width * 0.16;
-            const eyeY = centerY - height * 0.12;
-            const eyeRadius = Math.min(width, height) * 0.06;
-            
-            for (let y = 0; y < height; y++) {
-                for (let x = 0; x < width; x++) {
-                    let srcX = x;
-                    let srcY = y;
-                    
-                    const distToCenter = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
-                    
-                    if (distToCenter < faceRadius * 1.4) {
-                        if (faceSlimStrength > 0) {
-                            const angle = Math.atan2(y - centerY, x - centerX);
-                            const horizontalFactor = Math.abs(Math.cos(angle));
-                            
-                            const cheekYStart = centerY - faceRadius * 0.15;
-                            const cheekYEnd = centerY + faceRadius * 0.7;
-                            
-                            if (y > cheekYStart && y < cheekYEnd && horizontalFactor > 0.3) {
-                                const yProgress = (y - cheekYStart) / (cheekYEnd - cheekYStart);
-                                const influence = Math.sin(yProgress * Math.PI) * horizontalFactor;
-                                const slimAmount = faceSlimStrength * influence * 0.15;
-                                
-                                const dx = x - centerX;
-                                srcX = centerX + dx * (1 - slimAmount);
-                            }
-                        }
-                        
-                        if (eyeEnlargeStrength > 0) {
-                            for (const eyeX of [leftEyeX, rightEyeX]) {
-                                const eyeDist = Math.sqrt((x - eyeX) ** 2 + (y - eyeY) ** 2);
-                                
-                                if (eyeDist < eyeRadius * 2) {
-                                    const influence = Math.max(0, 1 - eyeDist / (eyeRadius * 2));
-                                    const enlargeAmount = eyeEnlargeStrength * influence * 0.15;
-                                    
-                                    const dx = x - eyeX;
-                                    const dy = y - eyeY;
-                                    
-                                    srcX = eyeX + dx * (1 + enlargeAmount);
-                                    srcY = eyeY + dy * (1 + enlargeAmount);
-                                }
-                            }
-                        }
-                    }
-                    
-                    srcX = Math.min(Math.max(0, srcX), width - 1);
-                    srcY = Math.min(Math.max(0, srcY), height - 1);
-                    
-                    const dstIdx = (y * width + x) * 4;
-                    const srcX0 = Math.floor(srcX);
-                    const srcY0 = Math.floor(srcY);
-                    const srcX1 = Math.min(srcX0 + 1, width - 1);
-                    const srcY1 = Math.min(srcY0 + 1, height - 1);
-                    const fx = srcX - srcX0;
-                    const fy = srcY - srcY0;
-                    
-                    const idx00 = (srcY0 * width + srcX0) * 4;
-                    const idx01 = (srcY0 * width + srcX1) * 4;
-                    const idx10 = (srcY1 * width + srcX0) * 4;
-                    const idx11 = (srcY1 * width + srcX1) * 4;
-                    
-                    for (let c = 0; c < 3; c++) {
-                        const v00 = sourceImage.data[idx00 + c];
-                        const v01 = sourceImage.data[idx01 + c];
-                        const v10 = sourceImage.data[idx10 + c];
-                        const v11 = sourceImage.data[idx11 + c];
-                        
-                        const v0 = v00 * (1 - fx) + v01 * fx;
-                        const v1 = v10 * (1 - fx) + v11 * fx;
-                        const v = v0 * (1 - fy) + v1 * fy;
-                        
-                        outputImage.data[dstIdx + c] = Math.round(v);
-                    }
-                    outputImage.data[dstIdx + 3] = 255;
-                }
+            if (sat < 0.15 && sat > 0.02) {
+                const brightness = (r + g + b) / 3;
+                if (brightness > 60 && brightness < 220) return true;
             }
             
-            ctx.putImageData(outputImage, 0, 0);
+            return r > 95 && Math.abs(r - g) > 10 && Math.abs(r - b) > 10;
         }
         
         function applyLightEffect(ctx, width, height) {
@@ -900,15 +790,15 @@
             const alpha = currentBrightness / 100;
             
             ctx.save();
-            ctx.globalCompositeOperation = 'overlay';
+            ctx.globalCompositeOperation = 'screen';
             
             const gradient = ctx.createRadialGradient(
                 width * 0.5, height * 0.35, 0,
-                width * 0.5, height * 0.35, Math.max(width, height) * 0.6
+                width * 0.5, height * 0.35, Math.max(width, height) * 0.65
             );
             
-            gradient.addColorStop(0, `rgba(${color.r}, ${color.g}, ${color.b}, ${alpha * 0.4})`);
-            gradient.addColorStop(0.6, `rgba(${color.r}, ${color.g}, ${color.b}, ${alpha * 0.2})`);
+            gradient.addColorStop(0, `rgba(${color.r}, ${color.g}, ${color.b}, ${alpha * 0.45})`);
+            gradient.addColorStop(0.5, `rgba(${color.r}, ${color.g}, ${color.b}, ${alpha * 0.25})`);
             gradient.addColorStop(1, `rgba(${color.r}, ${color.g}, ${color.b}, 0)`);
             
             ctx.fillStyle = gradient;
@@ -1054,13 +944,9 @@
             
             smoothSlider.value = preset.smooth;
             whiteningSlider.value = preset.whitening;
-            faceSlimSlider.value = preset.faceSlim;
-            eyeEnlargeSlider.value = preset.eyeEnlarge;
             
             document.getElementById('smoothValue').textContent = preset.smooth;
             document.getElementById('whiteningValue').textContent = preset.whitening;
-            document.getElementById('faceSlimValue').textContent = preset.faceSlim;
-            document.getElementById('eyeEnlargeValue').textContent = preset.eyeEnlarge;
         }
         
         beautyBtns.forEach(btn => {
@@ -1082,18 +968,14 @@
         
         smoothSlider.addEventListener('input', () => {
             document.getElementById('smoothValue').textContent = smoothSlider.value;
+            beautyBtns.forEach(b => b.classList.remove('active'));
+            currentBeautyStyle = 'custom';
         });
         
         whiteningSlider.addEventListener('input', () => {
             document.getElementById('whiteningValue').textContent = whiteningSlider.value;
-        });
-        
-        faceSlimSlider.addEventListener('input', () => {
-            document.getElementById('faceSlimValue').textContent = faceSlimSlider.value;
-        });
-        
-        eyeEnlargeSlider.addEventListener('input', () => {
-            document.getElementById('eyeEnlargeValue').textContent = eyeEnlargeSlider.value;
+            beautyBtns.forEach(b => b.classList.remove('active'));
+            currentBeautyStyle = 'custom';
         });
         
         brightnessSlider.addEventListener('input', () => {
