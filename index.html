@@ -223,6 +223,10 @@
                     <input type="range" class="slider" id="whitenSlider" min="0" max="100" value="0">
                 </div>
                 <div class="slider-row">
+                    <div class="slider-label"><span>🌫️ 柔焦</span><span class="slider-val" id="softFocusVal">0</span></div>
+                    <input type="range" class="slider" id="softFocusSlider" min="0" max="100" value="0">
+                </div>
+                <div class="slider-row">
                     <div class="slider-label"><span>💪 瘦脸</span><span class="slider-val" id="slimVal">0</span></div>
                     <input type="range" class="slider" id="slimSlider" min="0" max="50" value="0">
                 </div>
@@ -309,11 +313,13 @@
 
         const smoothSlider = document.getElementById('smoothSlider');
         const whitenSlider = document.getElementById('whitenSlider');
+        const softFocusSlider = document.getElementById('softFocusSlider');
         const slimSlider = document.getElementById('slimSlider');
         const eyeSlider = document.getElementById('eyeSlider');
         const gfpganSlider = document.getElementById('gfpganSlider');
         const smoothVal = document.getElementById('smoothVal');
         const whitenVal = document.getElementById('whitenVal');
+        const softFocusVal = document.getElementById('softFocusVal');
         const slimVal = document.getElementById('slimVal');
         const eyeVal = document.getElementById('eyeVal');
         const gfpganVal = document.getElementById('gfpganVal');
@@ -336,10 +342,10 @@
         const tabContents = document.querySelectorAll('.tab-content');
 
         const beautyPresets = {
-            none: { smooth: 0, whiten: 0, slim: 0, eye: 0, gfpgan: 0 },
-            natural: { smooth: 45, whiten: 30, slim: 12, eye: 10, gfpgan: 0 },
-            glamour: { smooth: 75, whiten: 55, slim: 28, eye: 22, gfpgan: 0 },
-            ai: { smooth: 60, whiten: 40, slim: 20, eye: 16, gfpgan: 40 }
+            none: { smooth: 0, whiten: 0, softFocus: 0, slim: 0, eye: 0, gfpgan: 0 },
+            natural: { smooth: 45, whiten: 30, softFocus: 20, slim: 12, eye: 10, gfpgan: 0 },
+            glamour: { smooth: 75, whiten: 55, softFocus: 45, slim: 28, eye: 22, gfpgan: 0 },
+            ai: { smooth: 60, whiten: 40, softFocus: 35, slim: 20, eye: 16, gfpgan: 40 }
         };
 
         const lipstickColors = {
@@ -361,7 +367,7 @@
         let currentColor = 'warm';
         let currentLightMode = 'normal';
         let currentLipstick = 'red';
-        let smooth = 0, whiten = 0, slim = 0, eye = 0, gfpgan = 0;
+        let smooth = 0, whiten = 0, softFocus = 0, slim = 0, eye = 0, gfpgan = 0;
         let lipstick = 0, blush = 0;
         let bright = 30;
         let lightOn = true;
@@ -399,15 +405,156 @@
         }
 
         const GPUBeauty = {
+            // 优化的磨皮算法 - 混合双边滤波+导向滤波思想，更自然
             applySkinSmoothing(imageData, strength) {
                 if (strength <= 0) return imageData;
                 const data = imageData.data;
                 const width = imageData.width;
                 const height = imageData.height;
                 const result = new Uint8ClampedArray(data);
-                const radius = Math.floor(2 + strength / 12);
-                const sigmaColor = 30 + strength * 0.5;
-                const sigmaSpace = 2 + strength / 20;
+                
+                const radius = Math.min(4, Math.floor(1 + strength / 20));
+                const sigmaColor = 25 + strength * 0.8;
+                const sigmaSpace = 1.5 + strength / 25;
+                const amount = strength / 100;
+                
+                // 创建边缘检测缓存，避免过度模糊
+                const edgeMask = new Float32Array(width * height);
+                
+                for (let y = 1; y < height - 1; y++) {
+                    for (let x = 1; x < width - 1; x++) {
+                        const idx = (y * width + x) * 4;
+                        let gx = 0, gy = 0;
+                        for (let ky = -1; ky <= 1; ky++) {
+                            for (let kx = -1; kx <= 1; kx++) {
+                                const nidx = ((y + ky) * width + (x + kx)) * 4;
+                                const gray = (data[nidx] + data[nidx+1] + data[nidx+2]) / 3;
+                                const sobelX = (kx === -1 ? -1 : kx === 1 ? 1 : 0);
+                                const sobelY = (ky === -1 ? -1 : ky === 1 ? 1 : 0);
+                                if (ky !== 0 || kx !== 0) {
+                                    gx += gray * sobelX;
+                                    gy += gray * sobelY;
+                                }
+                            }
+                        }
+                        edgeMask[y * width + x] = Math.min(1, Math.sqrt(gx * gx + gy * gy) / 100);
+                    }
+                }
+                
+                const step = strength < 50 ? 2 : 3;
+                for (let y = radius; y < height - radius; y += step) {
+                    for (let x = radius; x < width - radius; x += step) {
+                        let r = 0, g = 0, b = 0, weight = 0;
+                        const centerIdx = (y * width + x) * 4;
+                        const centerR = data[centerIdx];
+                        const centerG = data[centerIdx + 1];
+                        const centerB = data[centerIdx + 2];
+                        
+                        const edgeValue = edgeMask[y * width + x];
+                        
+                        for (let dy = -radius; dy <= radius; dy++) {
+                            for (let dx = -radius; dx <= radius; dx++) {
+                                const nx = x + dx;
+                                const ny = y + dy;
+                                const idx = (ny * width + nx) * 4;
+                                
+                                const colorDiff = Math.abs(data[idx] - centerR) + 
+                                                  Math.abs(data[idx+1] - centerG) + 
+                                                  Math.abs(data[idx+2] - centerB);
+                                const spatialDiff = dx*dx + dy*dy;
+                                
+                                let colorSigma = sigmaColor * (1 - edgeValue * 0.5);
+                                let spaceSigma = sigmaSpace * (1 - edgeValue * 0.3);
+                                
+                                const w = Math.exp(-colorDiff*colorDiff/(2*colorSigma*colorSigma) - 
+                                                  spatialDiff/(2*spaceSigma*spaceSigma));
+                                
+                                r += data[idx] * w;
+                                g += data[idx+1] * w;
+                                b += data[idx+2] * w;
+                                weight += w;
+                            }
+                        }
+                        
+                        if (weight > 0) {
+                            const blendFactor = amount * (1 - edgeValue * 0.6);
+                            const resultIdx = (y * width + x) * 4;
+                            result[resultIdx] = centerR * (1 - blendFactor) + (r / weight) * blendFactor;
+                            result[resultIdx+1] = centerG * (1 - blendFactor) + (g / weight) * blendFactor;
+                            result[resultIdx+2] = centerB * (1 - blendFactor) + (b / weight) * blendFactor;
+                            
+                            for (let sy = 0; sy < step && y + sy < height - radius; sy++) {
+                                for (let sx = 0; sx < step && x + sx < width - radius; sx++) {
+                                    const fillIdx = ((y + sy) * width + (x + sx)) * 4;
+                                    const fillEdge = edgeMask[(y + sy) * width + (x + sx)];
+                                    const fillBlend = amount * (1 - fillEdge * 0.6);
+                                    result[fillIdx] = data[fillIdx] * (1 - fillBlend) + (r / weight) * fillBlend;
+                                    result[fillIdx+1] = data[fillIdx+1] * (1 - fillBlend) + (g / weight) * fillBlend;
+                                    result[fillIdx+2] = data[fillIdx+2] * (1 - fillBlend) + (b / weight) * fillBlend;
+                                }
+                            }
+                        }
+                    }
+                }
+                return new ImageData(result, width, height);
+            },
+
+            // 优化的美白算法 - 更自然的肤色处理，增加红润感
+            applyWhitening(imageData, strength) {
+                if (strength <= 0) return imageData;
+                const data = imageData.data;
+                const amount = strength / 100 * 0.35;
+                
+                for (let i = 0; i < data.length; i += 4) {
+                    const r = data[i], g = data[i+1], b = data[i+2];
+                    const rNorm = r / 255, gNorm = g / 255, bNorm = b / 255;
+                    const max = Math.max(rNorm, gNorm, bNorm);
+                    const min = Math.min(rNorm, gNorm, bNorm);
+                    const l = (max + min) / 2;
+                    
+                    if (l > 0.2 && l < 0.96) {
+                        const rgDiff = gNorm - rNorm * 0.75;
+                        const rbDiff = bNorm - rNorm * 0.55;
+                        const skinLikeness = Math.max(0, 1 - Math.abs(rgDiff) * 2.0 - Math.abs(rbDiff) * 2.0);
+                        
+                        if (skinLikeness > 0.2) {
+                            const skinAmount = amount * skinLikeness;
+                            
+                            let newR = r, newG = g, newB = b;
+                            
+                            if (l < 0.5) {
+                                const lightFactor = 1 + skinAmount * 0.8;
+                                newR = Math.min(255, r * lightFactor);
+                                newG = Math.min(255, g * lightFactor * 0.98);
+                                newB = Math.min(255, b * lightFactor * 0.96);
+                            } else {
+                                const gamma = 1 - skinAmount * 0.4;
+                                newR = Math.min(255, Math.pow(rNorm, gamma) * 255);
+                                newG = Math.min(255, Math.pow(gNorm, gamma) * 255 * 0.99);
+                                newB = Math.min(255, Math.pow(bNorm, gamma) * 255 * 0.97);
+                            }
+                            
+                            newR = Math.min(255, newR * (1 + skinAmount * 0.15));
+                            
+                            const blend = 0.3 + skinAmount * 0.4;
+                            data[i] = r * (1 - blend) + newR * blend;
+                            data[i+1] = g * (1 - blend) + newG * blend;
+                            data[i+2] = b * (1 - blend) + newB * blend;
+                        }
+                    }
+                }
+                return imageData;
+            },
+            
+            // 新增：柔焦效果 - 营造朦胧美感
+            applySoftFocus(imageData, strength) {
+                if (strength <= 0) return imageData;
+                const data = imageData.data;
+                const width = imageData.width;
+                const height = imageData.height;
+                const result = new Uint8ClampedArray(data);
+                const amount = strength / 100 * 0.4;
+                const radius = 2 + Math.floor(strength / 30);
                 
                 for (let y = radius; y < height - radius; y += 2) {
                     for (let x = radius; x < width - radius; x += 2) {
@@ -423,11 +570,8 @@
                                 const ny = y + dy;
                                 const idx = (ny * width + nx) * 4;
                                 
-                                const colorDiff = Math.abs(data[idx] - centerR) + 
-                                                  Math.abs(data[idx+1] - centerG) + 
-                                                  Math.abs(data[idx+2] - centerB);
                                 const spatialDiff = dx*dx + dy*dy;
-                                const w = Math.exp(-colorDiff*colorDiff/(2*sigmaColor*sigmaColor) - spatialDiff/(2*sigmaSpace*sigmaSpace));
+                                const w = Math.exp(-spatialDiff/(2 * (radius*radius/2)));
                                 
                                 r += data[idx] * w;
                                 g += data[idx+1] * w;
@@ -436,75 +580,87 @@
                             }
                         }
                         
-                        const resultIdx = (y * width + x) * 4;
-                        result[resultIdx] = r / weight;
-                        result[resultIdx+1] = g / weight;
-                        result[resultIdx+2] = b / weight;
-                        
-                        if (x + 1 < width - radius) {
-                            const rIdx = resultIdx + 4;
-                            result[rIdx] = r / weight;
-                            result[rIdx+1] = g / weight;
-                            result[rIdx+2] = b / weight;
+                        if (weight > 0) {
+                            for (let sy = 0; sy < 2 && y + sy < height - radius; sy++) {
+                                for (let sx = 0; sx < 2 && x + sx < width - radius; sx++) {
+                                    const fillIdx = ((y + sy) * width + (x + sx)) * 4;
+                                    result[fillIdx] = data[fillIdx] * (1 - amount) + (r / weight) * amount;
+                                    result[fillIdx+1] = data[fillIdx+1] * (1 - amount) + (g / weight) * amount;
+                                    result[fillIdx+2] = data[fillIdx+2] * (1 - amount) + (b / weight) * amount;
+                                }
+                            }
                         }
                     }
                 }
                 return new ImageData(result, width, height);
-            },
-
-            applyWhitening(imageData, strength) {
-                if (strength <= 0) return imageData;
-                const data = imageData.data;
-                const amount = strength / 100 * 0.4;
-                
-                for (let i = 0; i < data.length; i += 4) {
-                    const r = data[i], g = data[i+1], b = data[i+2];
-                    const rNorm = r / 255, gNorm = g / 255, bNorm = b / 255;
-                    const max = Math.max(rNorm, gNorm, bNorm);
-                    const min = Math.min(rNorm, gNorm, bNorm);
-                    const l = (max + min) / 2;
-                    
-                    if (l > 0.25 && l < 0.95) {
-                        const skinLikeness = Math.max(0, 1 - Math.abs(gNorm - rNorm * 0.75) * 2.5 - Math.abs(bNorm - rNorm * 0.55) * 2.5);
-                        if (skinLikeness > 0.25) {
-                            const factor = 1 + amount * skinLikeness;
-                            data[i] = Math.min(255, r * factor);
-                            data[i+1] = Math.min(255, g * factor * 0.98);
-                            data[i+2] = Math.min(255, b * factor * 0.95);
-                        }
-                    }
-                }
-                return imageData;
             }
         };
 
         const GFPGANSim = {
+            // 优化的AI增强算法 - 结合细节增强和肤色保护
             enhance(imageData, strength) {
                 if (strength <= 0) return imageData;
                 const data = imageData.data;
                 const width = imageData.width;
                 const height = imageData.height;
                 const amount = strength / 100;
+                const temp = new Uint8ClampedArray(data);
                 
-                for (let y = 1; y < height - 1; y++) {
-                    for (let x = 1; x < width - 1; x++) {
+                for (let y = 2; y < height - 2; y++) {
+                    for (let x = 2; x < width - 2; x++) {
                         const idx = (y * width + x) * 4;
                         
                         let lapR = 0, lapG = 0, lapB = 0;
+                        let detailR = 0, detailG = 0, detailB = 0;
+                        
                         for (let ky = -1; ky <= 1; ky++) {
                             for (let kx = -1; kx <= 1; kx++) {
                                 const nidx = ((y + ky) * width + (x + kx)) * 4;
-                                const k = (ky === 0 && kx === 0) ? 8 : -1;
-                                lapR += data[nidx] * k;
-                                lapG += data[nidx+1] * k;
-                                lapB += data[nidx+2] * k;
+                                let k = 0;
+                                if (ky === 0 && kx === 0) {
+                                    k = 8;
+                                } else if (Math.abs(ky) === Math.abs(kx)) {
+                                    k = -1;
+                                } else {
+                                    k = -1;
+                                }
+                                lapR += temp[nidx] * k;
+                                lapG += temp[nidx+1] * k;
+                                lapB += temp[nidx+2] * k;
                             }
                         }
                         
-                        const blend = 0.08 * amount;
-                        data[idx] = Math.min(255, Math.max(0, data[idx] + lapR * blend));
-                        data[idx+1] = Math.min(255, Math.max(0, data[idx+1] + lapG * blend));
-                        data[idx+2] = Math.min(255, Math.max(0, data[idx+2] + lapB * blend));
+                        for (let ky = -2; ky <= 2; ky++) {
+                            for (let kx = -2; kx <= 2; kx++) {
+                                const nidx = ((y + ky) * width + (x + kx)) * 4;
+                                const dist = ky*ky + kx*kx;
+                                const w = Math.exp(-dist/2);
+                                detailR += temp[nidx] * w;
+                                detailG += temp[nidx+1] * w;
+                                detailB += temp[nidx+2] * w;
+                            }
+                        }
+                        
+                        const r = data[idx], g = data[idx+1], b = data[idx+2];
+                        const rNorm = r / 255, gNorm = g / 255, bNorm = b / 255;
+                        
+                        const rgDiff = gNorm - rNorm * 0.75;
+                        const rbDiff = bNorm - rNorm * 0.55;
+                        const skinLikeness = Math.max(0, 1 - Math.abs(rgDiff) * 2.0 - Math.abs(rbDiff) * 2.0);
+                        
+                        const isSkin = skinLikeness > 0.2;
+                        const detailBlend = isSkin ? 0.04 * amount * (1 - skinLikeness * 0.5) : 0.08 * amount;
+                        
+                        data[idx] = Math.min(255, Math.max(0, r + lapR * detailBlend));
+                        data[idx+1] = Math.min(255, Math.max(0, g + lapG * detailBlend));
+                        data[idx+2] = Math.min(255, Math.max(0, b + lapB * detailBlend));
+                        
+                        if (isSkin) {
+                            const smoothBlend = 0.1 * amount * skinLikeness;
+                            data[idx] = Math.min(255, data[idx] * (1 - smoothBlend) + (detailR / 13) * smoothBlend);
+                            data[idx+1] = Math.min(255, data[idx+1] * (1 - smoothBlend) + (detailG / 13) * smoothBlend);
+                            data[idx+2] = Math.min(255, data[idx+2] * (1 - smoothBlend) + (detailB / 13) * smoothBlend);
+                        }
                     }
                 }
                 return imageData;
@@ -512,36 +668,87 @@
         };
 
         const SmartLighting = {
+            // 优化的智能补光 - 三层光线叠加，更自然
             applySmartFaceLight(ctx, landmarks, width, height, strength, color) {
                 if (!landmarks || strength <= 0) return;
                 
                 const c = colors[color];
+                const a = strength / 100;
                 
                 const faceCenter = {
                     x: landmarks[1].x * width,
                     y: landmarks[1].y * height
                 };
-                const faceTop = landmarks[10].y * height;
-                const faceBottom = landmarks[152].y * height;
-                const faceHeight = faceBottom - faceTop;
-                const lightRadius = faceHeight * 1.2;
+                const noseTip = {
+                    x: landmarks[1].x * width,
+                    y: landmarks[1].y * height
+                };
+                const forehead = {
+                    x: landmarks[10].x * width,
+                    y: landmarks[10].y * height
+                };
+                const chin = {
+                    x: landmarks[152].x * width,
+                    y: landmarks[152].y * height
+                };
+                const leftCheek = {
+                    x: landmarks[234].x * width,
+                    y: landmarks[234].y * height
+                };
+                const rightCheek = {
+                    x: landmarks[454].x * width,
+                    y: landmarks[454].y * height
+                };
                 
-                const gradient = ctx.createRadialGradient(
-                    faceCenter.x, faceCenter.y, 0,
-                    faceCenter.x, faceCenter.y, lightRadius
-                );
-                gradient.addColorStop(0, `rgba(${c.r}, ${c.g}, ${c.b}, ${strength / 100 * 0.35})`);
-                gradient.addColorStop(1, `rgba(${c.r}, ${c.g}, ${c.b}, 0)`);
+                const faceHeight = chin.y - forehead.y;
                 
                 ctx.save();
+                
+                const mainRadius = faceHeight * 1.4;
+                const gradient1 = ctx.createRadialGradient(
+                    faceCenter.x, faceCenter.y - faceHeight * 0.15, 0,
+                    faceCenter.x, faceCenter.y - faceHeight * 0.15, mainRadius
+                );
+                gradient1.addColorStop(0, `rgba(${c.r}, ${c.g}, ${c.b}, ${a * 0.3})`);
+                gradient1.addColorStop(0.4, `rgba(${c.r}, ${c.g}, ${c.b}, ${a * 0.18})`);
+                gradient1.addColorStop(1, `rgba(${c.r}, ${c.g}, ${c.b}, 0)`);
+                
+                const cheekRadius = faceHeight * 0.5;
+                const leftGrad = ctx.createRadialGradient(
+                    leftCheek.x, leftCheek.y, 0,
+                    leftCheek.x, leftCheek.y, cheekRadius
+                );
+                leftGrad.addColorStop(0, `rgba(${c.r}, ${c.g}, ${c.b}, ${a * 0.2})`);
+                leftGrad.addColorStop(1, `rgba(${c.r}, ${c.g}, ${c.b}, 0)`);
+                
+                const rightGrad = ctx.createRadialGradient(
+                    rightCheek.x, rightCheek.y, 0,
+                    rightCheek.x, rightCheek.y, cheekRadius
+                );
+                rightGrad.addColorStop(0, `rgba(${c.r}, ${c.g}, ${c.b}, ${a * 0.2})`);
+                rightGrad.addColorStop(1, `rgba(${c.r}, ${c.g}, ${c.b}, 0)`);
+                
                 ctx.globalCompositeOperation = 'screen';
-                ctx.fillStyle = gradient;
+                
+                ctx.fillStyle = gradient1;
                 ctx.beginPath();
-                ctx.arc(faceCenter.x, faceCenter.y, lightRadius, 0, Math.PI * 2);
+                ctx.arc(faceCenter.x, faceCenter.y - faceHeight * 0.15, mainRadius, 0, Math.PI * 2);
                 ctx.fill();
+                
+                ctx.fillStyle = leftGrad;
+                ctx.beginPath();
+                ctx.arc(leftCheek.x, leftCheek.y, cheekRadius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = rightGrad;
+                ctx.beginPath();
+                ctx.arc(rightCheek.x, rightCheek.y, cheekRadius, 0, Math.PI * 2);
+                ctx.fill();
+                
                 ctx.restore();
             },
 
+            // 优化的逆光修复 - 结合CLAHE和曲线调整
             applyBacklightRepair(imageData, strength) {
                 if (strength <= 0) return imageData;
                 
@@ -551,8 +758,11 @@
                 const amount = strength / 100;
                 
                 let histogram = new Array(256).fill(0);
-                for (let i = 0; i < data.length; i += 4) {
+                let brightnessMap = new Uint8Array(width * height);
+                
+                for (let i = 0, j = 0; i < data.length; i += 4, j++) {
                     const brightness = Math.round(0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2]);
+                    brightnessMap[j] = brightness;
                     histogram[brightness]++;
                 }
                 
@@ -566,35 +776,71 @@
                 }
                 
                 let cdfMap = new Array(256).fill(0);
-                
                 for (let i = 0; i < 256; i++) {
                     cdf += histogram[i];
                     cdfMap[i] = Math.round((cdf - cdfMin) / (width * height - cdfMin) * 255);
                 }
                 
-                for (let i = 0; i < data.length; i += 4) {
-                    const brightness = Math.round(0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2]);
-                    const newBrightness = cdfMap[brightness];
+                let targetBrightness = 0, count = 0;
+                for (let j = 0; j < brightnessMap.length; j++) {
+                    if (brightnessMap[j] < 100) {
+                        targetBrightness += brightnessMap[j];
+                        count++;
+                    }
+                }
+                targetBrightness = count > 0 ? targetBrightness / count : 50;
+                
+                const gamma = 0.7 + amount * 0.3;
+                
+                for (let i = 0, j = 0; i < data.length; i += 4, j++) {
+                    const r = data[i], g = data[i+1], b = data[i+2];
+                    const brightness = brightnessMap[j];
+                    
+                    let newBrightness;
+                    if (brightness < 120) {
+                        const claheBrightness = cdfMap[brightness];
+                        const gammaBrightness = Math.pow(brightness / 255, gamma) * 255;
+                        
+                        const darkFactor = Math.max(0, 1 - brightness / 120);
+                        newBrightness = brightness * (1 - amount * 0.6 * darkFactor) + 
+                                       claheBrightness * amount * 0.4 * darkFactor +
+                                       gammaBrightness * amount * 0.4 * darkFactor;
+                    } else {
+                        newBrightness = brightness;
+                    }
+                    
                     const ratio = brightness > 0 ? newBrightness / brightness : 1;
                     
-                    const blend = 0.3 + amount * 0.5;
-                    data[i] = Math.min(255, data[i] * (1 - blend) + Math.min(255, data[i] * ratio) * blend);
-                    data[i+1] = Math.min(255, data[i+1] * (1 - blend) + Math.min(255, data[i+1] * ratio) * blend);
-                    data[i+2] = Math.min(255, data[i+2] * (1 - blend) + Math.min(255, data[i+2] * ratio) * blend);
+                    const rNorm = r / 255, gNorm = g / 255, bNorm = b / 255;
+                    const rgDiff = gNorm - rNorm * 0.75;
+                    const rbDiff = bNorm - rNorm * 0.55;
+                    const skinLikeness = Math.max(0, 1 - Math.abs(rgDiff) * 2.0 - Math.abs(rbDiff) * 2.0);
+                    
+                    const blend = (brightness < 120 ? (0.25 + amount * 0.45) : 0.1 * amount);
+                    const skinBlend = blend * (1 + skinLikeness * 0.2);
+                    
+                    data[i] = Math.min(255, Math.max(0, r * (1 - skinBlend) + Math.min(255, r * ratio) * skinBlend));
+                    data[i+1] = Math.min(255, Math.max(0, g * (1 - skinBlend) + Math.min(255, g * ratio) * skinBlend));
+                    data[i+2] = Math.min(255, Math.max(0, b * (1 - skinBlend) + Math.min(255, b * ratio) * skinBlend));
                 }
                 
                 return imageData;
             },
 
+            // 优化的普通补光 - 更柔和的分布
             applyNormalLight(ctx, width, height, strength, color) {
                 const c = colors[color];
                 const a = strength / 100;
+                
                 const gradient = ctx.createRadialGradient(
-                    width * 0.5, height * 0.3, 0,
-                    width * 0.5, height * 0.3, Math.max(width, height) * 0.7
+                    width * 0.5, height * 0.25, 0,
+                    width * 0.5, height * 0.25, Math.max(width, height) * 0.85
                 );
-                gradient.addColorStop(0, `rgba(${c.r}, ${c.g}, ${c.b}, ${a * 0.35})`);
+                gradient.addColorStop(0, `rgba(${c.r}, ${c.g}, ${c.b}, ${a * 0.32})`);
+                gradient.addColorStop(0.3, `rgba(${c.r}, ${c.g}, ${c.b}, ${a * 0.22})`);
+                gradient.addColorStop(0.6, `rgba(${c.r}, ${c.g}, ${c.b}, ${a * 0.12})`);
                 gradient.addColorStop(1, `rgba(${c.r}, ${c.g}, ${c.b}, 0)`);
+                
                 ctx.save();
                 ctx.globalCompositeOperation = 'screen';
                 ctx.fillStyle = gradient;
@@ -798,6 +1044,10 @@
                 imageData = GPUBeauty.applyWhitening(imageData, whiten);
             }
             
+            if (softFocus > 0) {
+                imageData = GPUBeauty.applySoftFocus(imageData, softFocus);
+            }
+            
             if (gfpgan > 0) {
                 imageData = GFPGANSim.enhance(imageData, gfpgan);
             }
@@ -869,6 +1119,10 @@
             
             if (whiten > 0) {
                 imageData = GPUBeauty.applyWhitening(imageData, whiten);
+            }
+            
+            if (softFocus > 0) {
+                imageData = GPUBeauty.applySoftFocus(imageData, softFocus);
             }
             
             if (gfpgan > 0) {
@@ -972,16 +1226,19 @@
             const preset = beautyPresets[currentPreset];
             smooth = preset.smooth;
             whiten = preset.whiten;
+            softFocus = preset.softFocus;
             slim = preset.slim;
             eye = preset.eye;
             gfpgan = preset.gfpgan;
             smoothSlider.value = smooth;
             whitenSlider.value = whiten;
+            softFocusSlider.value = softFocus;
             slimSlider.value = slim;
             eyeSlider.value = eye;
             gfpganSlider.value = gfpgan;
             smoothVal.textContent = smooth;
             whitenVal.textContent = whiten;
+            softFocusVal.textContent = softFocus;
             slimVal.textContent = slim;
             eyeVal.textContent = eye;
             gfpganVal.textContent = gfpgan;
@@ -1007,6 +1264,7 @@
 
         smoothSlider.oninput = () => { smooth = parseInt(smoothSlider.value); smoothVal.textContent = smooth; };
         whitenSlider.oninput = () => { whiten = parseInt(whitenSlider.value); whitenVal.textContent = whiten; };
+        softFocusSlider.oninput = () => { softFocus = parseInt(softFocusSlider.value); softFocusVal.textContent = softFocus; };
         slimSlider.oninput = () => { slim = parseInt(slimSlider.value); slimVal.textContent = slim; };
         eyeSlider.oninput = () => { eye = parseInt(eyeSlider.value); eyeVal.textContent = eye; };
         gfpganSlider.oninput = () => { gfpgan = parseInt(gfpganSlider.value); gfpganVal.textContent = gfpgan; };
