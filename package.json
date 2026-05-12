@@ -1,18 +1,39 @@
 {
   "name": "light-camera",
   "version": "1.0.0",
-  "description": "",
+  "description": "AI Beauty Camera - Real-time beauty camera with GPU acceleration, smart lighting and face makeup",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "android": "npm run sync && cd android && ./gradlew assembleDebug",
+    "ios": "npm run sync && cd ios && xcodebuild",
+    "sync": "npx cap sync",
+    "sync:android": "npx cap sync android",
+    "sync:ios": "npx cap sync ios",
+    "open:android": "npx cap open android",
+    "open:ios": "npx cap open ios",
+    "build": "cp index.html www/index.html && echo 'Build complete!'",
+    "dev": "python3 -m http.server 8000"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "beauty",
+    "camera",
+    "mobile",
+    "capacitor",
+    "web-app"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
   "type": "commonjs",
   "dependencies": {
     "@capacitor/android": "^8.3.3",
     "@capacitor/cli": "^8.3.3",
-    "@capacitor/core": "^8.3.3"
-  }
+    "@capacitor/core": "^8.3.3",
+    "@capacitor/ios": "^8.3.3",
+    "@capacitor/camera": "^6.1.0",
+    "@capacitor/filesystem": "^6.0.2",
+    "@capacitor/preferences": "^6.0.2",
+    "@capacitor/splash-screen": "^6.0.2"
+  },
+  "devDependencies": {}
 }
