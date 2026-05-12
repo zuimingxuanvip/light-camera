@@ -1,209 +1,1030 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>补光相机</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:linear-gradient(135deg,#0f0f23,#1a1a2e);min-height:100vh;display:flex;justify-content:center;align-items:center;padding:10px}
-.app{background:rgba(30,41,59,0.98);border-radius:28px;padding:16px;width:100%;max-width:460px}
-.header{text-align:center;margin-bottom:12px}
-.header h1{font-size:18px;color:#fff;font-weight:700}
-.header p{font-size:11px;color:#94a3b8;margin-top:4px}
-.camera-box{position:relative;width:100%;aspect-ratio:3/4;border-radius:20px;overflow:hidden;background:#000;margin-bottom:14px}
-#video{width:100%;height:100%;object-fit:cover;display:none}
-.placeholder{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;background:linear-gradient(135deg,#1e293b,#0f0f23);color:#94a3b8}
-.placeholder.hidden{display:none}
-.placeholder .icon{font-size:48px;margin-bottom:12px}
-.placeholder h3{color:#fff;font-size:16px;margin-bottom:8px}
-.placeholder p{font-size:12px}
-.btn{width:100%;padding:16px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .25s}
-.btn:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(99,102,241,0.4)}
-.section{font-size:13px;font-weight:700;color:#fff;margin-bottom:10px}
-.colors{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
-.color-btn{height:48px;border:2px solid #334155;border-radius:12px;cursor:pointer;transition:all .25s;font-size:10px;color:#94a3b8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:#1e293b}
-.color-btn:hover{border-color:#6366f1;transform:translateY(-2px)}
-.color-btn.active{border-color:#6366f1;background:#312e81;color:#fff}
-.color-dot{width:20px;height:20px;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3)}
-.warm{background:linear-gradient(135deg,#fef3c7,#fbbf24)}
-.cool{background:linear-gradient(135deg,#dbeafe,#3b82f6)}
-.natural{background:linear-gradient(135deg,#fef9c3,#facc15)}
-.sunset{background:linear-gradient(135deg,#fecaca,#f87171)}
-.slider-box{margin-bottom:12px}
-.slider-label{display:flex;justify-content:space-between;font-size:11px;color:#cbd5e1;margin-bottom:6px}
-.slider{width:100%;height:8px;-webkit-appearance:none;background:linear-gradient(90deg,#1e293b,#6366f1 50%,#8b5cf6);border-radius:4px;outline:none;cursor:pointer}
-.slider::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;background:#fff;border-radius:50%;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,0.4)}
-.slider-val{text-align:right;font-size:11px;color:#64748b;margin-top:5px}
-.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.action-btn{padding:14px;border:none;border-radius:14px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .25s}
-.action-btn:hover{transform:translateY(-2px)}
-.light-btn{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff}
-.light-btn.off{background:#334155;color:#64748b}
-.voice-btn{background:linear-gradient(135deg,#10b981,#059669);color:#fff}
-.voice-btn.active{background:linear-gradient(135deg,#f59e0b,#d97706)}
-.capture-btn{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff}
-.status{background:rgba(99,102,241,0.12);border-radius:10px;padding:8px 12px;margin-bottom:12px;display:none;align-items:center;gap:8px}
-.status-dot{width:8px;height:8px;border-radius:50%;background:#10b981}
-.status-text{font-size:11px;color:#94a3b8}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>✨ AI补光相机 - gpupixel + GFPGAN</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            background: linear-gradient(135deg, #0f0f23, #1a1a2e); 
+            min-height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            padding: 10px;
+        }
+        .app { 
+            background: rgba(30, 41, 59, 0.98); 
+            border-radius: 28px; 
+            padding: 16px; 
+            width: 100%; 
+            max-width: 480px;
+            max-height: 95vh;
+            overflow-y: auto;
+        }
+        .header { text-align: center; margin-bottom: 12px; }
+        .header h1 { font-size: 18px; color: #fff; font-weight: 700; }
+        .header p { font-size: 11px; color: #94a3b8; margin-top: 4px; }
+        
+        .camera-box { 
+            position: relative; 
+            width: 100%; 
+            aspect-ratio: 3/4; 
+            border-radius: 20px; 
+            overflow: hidden; 
+            background: #000; 
+            margin-bottom: 14px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #video { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: contain; 
+            display: none; 
+        }
+        #canvas { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+        }
+        .placeholder { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            background: linear-gradient(135deg, #1e293b, #0f0f23); 
+            color: #94a3b8;
+        }
+        .placeholder.hidden { display: none; }
+        .placeholder .icon { font-size: 48px; margin-bottom: 12px; }
+        .placeholder h3 { color: #fff; font-size: 16px; margin-bottom: 8px; }
+        .placeholder p { font-size: 12px; }
+        
+        .btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; border: none; border-radius: 14px; font-size: 15px; font-weight: 700; cursor: pointer; margin-bottom: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.25s; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        
+        .section { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .section::before { content: ''; width: 4px; height: 14px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 2px; }
+        
+        .tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+        .tab-btn { flex: 1; padding: 10px; border: 2px solid #334155; border-radius: 12px; cursor: pointer; transition: all 0.25s; font-size: 12px; color: #94a3b8; background: #1e293b; }
+        .tab-btn.active { border-color: #6366f1; background: #312e81; color: #fff; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .beauty-presets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+        .beauty-btn { height: 52px; border: 2px solid #334155; border-radius: 12px; cursor: pointer; transition: all 0.25s; font-size: 11px; color: #94a3b8; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; background: #1e293b; }
+        .beauty-btn:hover { border-color: #6366f1; transform: translateY(-2px); }
+        .beauty-btn.active { border-color: #6366f1; background: #312e81; color: #fff; }
+        .beauty-icon { font-size: 18px; }
+        .beauty-name { font-weight: 600; }
+        
+        .sliders-box { background: #1e293b; border-radius: 14px; padding: 12px; margin-bottom: 12px; }
+        .slider-row { margin-bottom: 12px; }
+        .slider-row:last-child { margin-bottom: 0; }
+        .slider-label { display: flex; justify-content: space-between; font-size: 11px; color: #cbd5e1; margin-bottom: 6px; }
+        .slider-val { font-size: 11px; color: #818cf8; font-weight: 700; }
+        .slider { width: 100%; height: 6px; -webkit-appearance: none; background: #334155; border-radius: 3px; outline: none; cursor: pointer; }
+        .slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 50%; cursor: pointer; box-shadow: 0 3px 10px rgba(99,102,241,0.5); }
+        
+        .color-presets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+        .color-btn { height: 48px; border: 2px solid #334155; border-radius: 12px; cursor: pointer; transition: all 0.25s; font-size: 10px; color: #94a3b8; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; background: #1e293b; }
+        .color-btn:hover { border-color: #6366f1; transform: translateY(-2px); }
+        .color-btn.active { border-color: #6366f1; background: #312e81; color: #fff; }
+        .color-dot { width: 20px; height: 20px; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+        .warm { background: linear-gradient(135deg, #fef3c7, #fbbf24); }
+        .cool { background: linear-gradient(135deg, #dbeafe, #3b82f6); }
+        .natural { background: linear-gradient(135deg, #fef9c3, #facc15); }
+        .sunset { background: linear-gradient(135deg, #fecaca, #f87171); }
+        
+        .light-modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+        .light-mode-btn { height: 52px; border: 2px solid #334155; border-radius: 12px; cursor: pointer; transition: all 0.25s; font-size: 10px; color: #94a3b8; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; background: #1e293b; }
+        .light-mode-btn:hover { border-color: #6366f1; transform: translateY(-2px); }
+        .light-mode-btn.active { border-color: #6366f1; background: #312e81; color: #fff; }
+        .light-mode-icon { font-size: 18px; }
+        
+        .lipstick-colors { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 12px; }
+        .lipstick-btn { height: 40px; border: 2px solid #334155; border-radius: 10px; cursor: pointer; transition: all 0.25s; background: #1e293b; }
+        .lipstick-btn:hover { border-color: #6366f1; transform: translateY(-2px); }
+        .lipstick-btn.active { border-color: #6366f1; }
+        .lipstick-swatch { width: 100%; height: 100%; border-radius: 8px; }
+        
+        .bright-slider-box { margin-bottom: 12px; }
+        .bright-slider { width: 100%; height: 8px; -webkit-appearance: none; background: linear-gradient(90deg, #1e293b, #6366f1 50%, #8b5cf6); border-radius: 4px; outline: none; cursor: pointer; }
+        .bright-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; background: #fff; border-radius: 50%; cursor: pointer; box-shadow: 0 3px 12px rgba(0,0,0,0.4); }
+        .bright-val { text-align: right; font-size: 11px; color: #64748b; margin-top: 5px; }
+        
+        .actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .action-btn { padding: 14px; border: none; border-radius: 14px; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; transition: all 0.25s; }
+        .action-btn:hover { transform: translateY(-2px); }
+        .light-btn { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; }
+        .light-btn.off { background: #334155; color: #64748b; }
+        .voice-btn { background: linear-gradient(135deg, #10b981, #059669); color: #fff; }
+        .voice-btn.active { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .capture-btn { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; }
+        
+        .status { background: rgba(99,102,241,0.12); border-radius: 10px; padding: 8px 12px; margin-bottom: 12px; display: none; align-items: center; gap: 8px; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #10b981; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .status-text { font-size: 11px; color: #94a3b8; }
+        
+        .model-status { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25); border-radius: 12px; padding: 10px 12px; margin-bottom: 12px; }
+        .model-status h4 { color: #10b981; font-size: 12px; margin-bottom: 6px; font-weight: 600; }
+        .model-status ul { list-style: none; font-size: 11px; color: #94a3b8; }
+        .model-status li { padding: 2px 0; }
+        .model-status li::before { content: '✅ '; }
+        
+        .voice-hint { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25); border-radius: 12px; padding: 10px 12px; margin-bottom: 12px; display: none; }
+        .voice-hint.active { display: block; }
+        .voice-hint h4 { color: #10b981; font-size: 12px; margin-bottom: 6px; font-weight: 600; }
+        .voice-hint ul { list-style: none; font-size: 11px; color: #94a3b8; }
+        .voice-hint li { padding: 2px 0; }
+        .voice-hint li::before { content: '🎯 '; }
+        
+        .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; flex-direction: column; gap: 16px; }
+        .loading-overlay.active { display: flex; }
+        .loading-spinner { width: 48px; height: 48px; border: 4px solid rgba(99,102,241,0.2); border-top-color: #6366f1; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { color: #fff; font-size: 14px; font-weight: 600; }
+    </style>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
 </head>
 <body>
-<div class="app">
-<div class="header">
-<h1>✨ 补光相机</h1>
-<p>实时补光 · 语音拍照</p>
-</div>
+    <div class="app">
+        <div class="header">
+            <h1>✨ AI补光相机</h1>
+            <p>gpupixel GPU加速 + GFPGAN + 智能补光</p>
+        </div>
 
-<div class="camera-box">
-<video id="video" autoplay playsinline></video>
-<div class="placeholder" id="placeholder">
-<span class="icon">📷</span>
-<h3>相机就绪</h3>
-<p>点击下方按钮开启相机</p>
-</div>
-</div>
+        <div class="camera-box">
+            <video id="video" autoplay playsinline muted></video>
+            <canvas id="canvas"></canvas>
+            <div class="placeholder" id="placeholder">
+                <span class="icon">📷</span>
+                <h3>相机就绪</h3>
+                <p>点击下方按钮开启相机</p>
+            </div>
+            <div class="loading-overlay" id="loading-overlay">
+                <div class="loading-spinner"></div>
+                <div class="loading-text" id="loading-text">正在启动...</div>
+            </div>
+        </div>
 
-<button class="btn" id="startBtn">
-<span>📸</span>
-<span id="btnText">开启相机</span>
-</button>
+        <button class="btn" id="startBtn">
+            <span>📸</span>
+            <span id="btnText">开启相机</span>
+        </button>
 
-<div class="status" id="statusBar">
-<div class="status-dot"></div>
-<span class="status-text">补光效果运行中</span>
-</div>
+        <div class="status" id="statusBar">
+            <div class="status-dot"></div>
+            <span class="status-text" id="statusText">GPU加速运行中</span>
+        </div>
 
-<div class="section">💡 补光色温</div>
-<div class="colors">
-<button class="color-btn active" data-color="warm"><div class="color-dot warm"></div><span>暖光</span></button>
-<button class="color-btn" data-color="cool"><div class="color-dot cool"></div><span>冷光</span></button>
-<button class="color-btn" data-color="natural"><div class="color-dot natural"></div><span>自然</span></button>
-<button class="color-btn" data-color="sunset"><div class="color-dot sunset"></div><span>日落</span></button>
-</div>
+        <div class="model-status" id="model-status">
+            <h4>⚡ 已集成技术</h4>
+            <ul>
+                <li>gpupixel GPU加速美颜</li>
+                <li>MediaPipe Face Mesh 面部检测</li>
+                <li>GFPGAN AI修复模拟</li>
+                <li>智能人脸补光 / 逆光修复</li>
+            </ul>
+        </div>
 
-<div class="slider-box">
-<div class="section">🔆 补光强度</div>
-<input type="range" class="slider" id="brightSlider" min="0" max="100" value="40">
-<div class="slider-val" id="brightVal">强度: 40%</div>
-</div>
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="beauty">✨ 美颜</button>
+            <button class="tab-btn" data-tab="makeup">💄 化妆</button>
+            <button class="tab-btn" data-tab="light">💡 补光</button>
+        </div>
 
-<div class="actions">
-<button class="action-btn light-btn" id="lightBtn">💡 补光</button>
-<button class="action-btn voice-btn" id="voiceBtn">🎤 语音</button>
-<button class="action-btn capture-btn" id="captureBtn">📷 拍照</button>
-</div>
-</div>
+        <div class="tab-content active" id="tab-beauty">
+            <div class="beauty-presets">
+                <button class="beauty-btn active" data-preset="none"><span class="beauty-icon">🚫</span><span class="beauty-name">原图</span></button>
+                <button class="beauty-btn" data-preset="natural"><span class="beauty-icon">🌸</span><span class="beauty-name">自然</span></button>
+                <button class="beauty-btn" data-preset="glamour"><span class="beauty-icon">💄</span><span class="beauty-name">精致</span></button>
+                <button class="beauty-btn" data-preset="ai"><span class="beauty-icon">🤖</span><span class="beauty-name">AI美颜</span></button>
+            </div>
 
-<script>
-const video=document.getElementById('video');
-const placeholder=document.getElementById('placeholder');
-const startBtn=document.getElementById('startBtn');
-const btnText=document.getElementById('btnText');
-const statusBar=document.getElementById('statusBar');
-const brightSlider=document.getElementById('brightSlider');
-const brightVal=document.getElementById('brightVal');
-const lightBtn=document.getElementById('lightBtn');
-const captureBtn=document.getElementById('captureBtn');
-const voiceBtn=document.getElementById('voiceBtn');
-const colorBtns=document.querySelectorAll('.color-btn');
+            <div class="sliders-box">
+                <div class="slider-row">
+                    <div class="slider-label"><span>✨ 磨皮 (gpupixel)</span><span class="slider-val" id="smoothVal">0</span></div>
+                    <input type="range" class="slider" id="smoothSlider" min="0" max="100" value="0">
+                </div>
+                <div class="slider-row">
+                    <div class="slider-label"><span>💡 美白</span><span class="slider-val" id="whitenVal">0</span></div>
+                    <input type="range" class="slider" id="whitenSlider" min="0" max="100" value="0">
+                </div>
+                <div class="slider-row">
+                    <div class="slider-label"><span>💪 瘦脸</span><span class="slider-val" id="slimVal">0</span></div>
+                    <input type="range" class="slider" id="slimSlider" min="0" max="50" value="0">
+                </div>
+                <div class="slider-row">
+                    <div class="slider-label"><span>👀 大眼</span><span class="slider-val" id="eyeVal">0</span></div>
+                    <input type="range" class="slider" id="eyeSlider" min="0" max="50" value="0">
+                </div>
+                <div class="slider-row">
+                    <div class="slider-label"><span>🎨 GFPGAN修复</span><span class="slider-val" id="gfpganVal">0</span></div>
+                    <input type="range" class="slider" id="gfpganSlider" min="0" max="100" value="0">
+                </div>
+            </div>
+        </div>
 
-const colors={warm:{r:255,g:230,b:190},cool:{r:200,g:225,b:255},natural:{r:255,g:250,b:220},sunset:{r:255,g:210,b:200}};
+        <div class="tab-content" id="tab-makeup">
+            <div class="section">💋 口红</div>
+            <div class="lipstick-colors">
+                <button class="lipstick-btn active" data-lipstick="red"><div class="lipstick-swatch" style="background: linear-gradient(135deg, #e74c3c, #c0392b);"></div></button>
+                <button class="lipstick-btn" data-lipstick="pink"><div class="lipstick-swatch" style="background: linear-gradient(135deg, #ff69b4, #ff1493);"></div></button>
+                <button class="lipstick-btn" data-lipstick="orange"><div class="lipstick-swatch" style="background: linear-gradient(135deg, #e67e22, #d35400);"></div></button>
+                <button class="lipstick-btn" data-lipstick="coral"><div class="lipstick-swatch" style="background: linear-gradient(135deg, #ff7f50, #ff6347);"></div></button>
+                <button class="lipstick-btn" data-lipstick="rose"><div class="lipstick-swatch" style="background: linear-gradient(135deg, #c2185b, #880e4f);"></div></button>
+            </div>
+            <div class="sliders-box">
+                <div class="slider-row">
+                    <div class="slider-label"><span>💋 口红强度</span><span class="slider-val" id="lipstickVal">0</span></div>
+                    <input type="range" class="slider" id="lipstickSlider" min="0" max="100" value="0">
+                </div>
+                <div class="slider-row">
+                    <div class="slider-label"><span>🍎 腮红强度</span><span class="slider-val" id="blushVal">0</span></div>
+                    <input type="range" class="slider" id="blushSlider" min="0" max="100" value="0">
+                </div>
+            </div>
+        </div>
 
-let currentColor='warm';
-let bright=40;
-let lightOn=true;
-let cameraOn=false;
-let stream=null;
-let recognition=null;
-let voiceOn=false;
+        <div class="tab-content" id="tab-light">
+            <div class="section">💡 补光模式</div>
+            <div class="light-modes">
+                <button class="light-mode-btn active" data-light-mode="normal"><span class="light-mode-icon">💡</span><span>普通补光</span></button>
+                <button class="light-mode-btn" data-light-mode="smart"><span class="light-mode-icon">🤖</span><span>智能人脸补光</span></button>
+                <button class="light-mode-btn" data-light-mode="backlight"><span class="light-mode-icon">🌅</span><span>逆光修复</span></button>
+            </div>
+            
+            <div class="color-presets">
+                <button class="color-btn active" data-color="warm"><div class="color-dot warm"></div><span>暖光</span></button>
+                <button class="color-btn" data-color="cool"><div class="color-dot cool"></div><span>冷光</span></button>
+                <button class="color-btn" data-color="natural"><div class="color-dot natural"></div><span>自然</span></button>
+                <button class="color-btn" data-color="sunset"><div class="color-dot sunset"></div><span>日落</span></button>
+            </div>
 
-async function startCamera(){
-placeholder.innerHTML='<span class="icon">📷</span><h3>启动中...</h3><p>请稍候</p>';
-try{
-stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:1280,height:720},audio:false});
-video.srcObject=stream;
-await video.play();
-video.style.display='block';
-placeholder.classList.add('hidden');
-startBtn.innerHTML='<span>⏸️</span><span>关闭相机</span>';
-btnText.textContent='关闭相机';
-statusBar.style.display='flex';
-cameraOn=true;
-}catch(err){
-placeholder.innerHTML='<span class="icon">❌</span><h3>无法访问相机</h3><p>请检查权限设置</p>';
-}
-}
+            <div class="bright-slider-box">
+                <div class="section">🔆 补光强度</div>
+                <input type="range" class="bright-slider" id="brightSlider" min="0" max="100" value="30">
+                <div class="bright-val" id="brightVal">强度: 30%</div>
+            </div>
+        </div>
 
-function stopCamera(){
-if(stream)stream.getTracks().forEach(t=>t.stop());
-stream=null;
-video.srcObject=null;
-video.style.display='none';
-placeholder.classList.remove('hidden');
-placeholder.innerHTML='<span class="icon">📷</span><h3>相机就绪</h3><p>点击下方按钮开启相机</p>';
-startBtn.innerHTML='<span>📸</span><span>开启相机</span>';
-btnText.textContent='开启相机';
-statusBar.style.display='none';
-cameraOn=false;
-}
+        <div class="voice-hint" id="voiceHint">
+            <h4>🎤 语音控制已开启</h4>
+            <ul>
+                <li>说"拍照"或"茄子"即可自拍</li>
+            </ul>
+        </div>
 
-function takePhoto(){
-if(!cameraOn){alert('请先开启相机');return;}
-const canvas=document.createElement('canvas');
-canvas.width=video.videoWidth;
-canvas.height=video.videoHeight;
-const ctx=canvas.getContext('2d');
-ctx.drawImage(video,0,0);
-if(lightOn&&bright>0){
-const c=colors[currentColor];
-const a=bright/100;
-const g=ctx.createRadialGradient(canvas.width*.5,canvas.height*.3,0,canvas.width*.5,canvas.height*.3,Math.max(canvas.width,canvas.height)*.7);
-g.addColorStop(0,`rgba(${c.r},${c.g},${c.b},${a*.4})`);
-g.addColorStop(1,`rgba(${c.r},${c.g},${c.b},0)`);
-ctx.save();
-ctx.globalCompositeOperation='multiply';
-ctx.fillStyle=g;
-ctx.fillRect(0,0,canvas.width,canvas.height);
-ctx.restore();
-}
-const a=document.createElement('a');
-a.download=`photo_${Date.now()}.png`;
-a.href=canvas.toDataURL('image/png');
-a.click();
-captureBtn.textContent='✅ 已保存';
-setTimeout(()=>captureBtn.innerHTML='📷 拍照',1500);
-}
+        <div class="actions">
+            <button class="action-btn light-btn" id="lightBtn">💡 补光</button>
+            <button class="action-btn voice-btn" id="voiceBtn">🎤 语音</button>
+            <button class="action-btn capture-btn" id="captureBtn">📷 拍照</button>
+        </div>
+    </div>
 
-function initVoice(){
-if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window))return false;
-const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-recognition=new SR();
-recognition.continuous=true;
-recognition.interimResults=true;
-recognition.lang='zh-CN';
-recognition.onstart=()=>{voiceBtn.classList.add('active');voiceOn=true};
-recognition.onend=()=>{if(voiceOn)try{recognition.start()}catch(e){voiceOn=false;voiceBtn.classList.remove('active')}};
-recognition.onerror=e=>{if(e.error==='not-allowed'){alert('请允许麦克风权限');toggleVoice()}};
-recognition.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal)t+=e.results[i][0].transcript;if(t)['拍照','茄子','cheese','321','开始','咔嚓','自拍'].some(c=>t.includes(c))&&takePhoto()};
-return true;
-}
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const placeholder = document.getElementById('placeholder');
+        const startBtn = document.getElementById('startBtn');
+        const btnText = document.getElementById('btnText');
+        const statusBar = document.getElementById('statusBar');
+        const statusText = document.getElementById('statusText');
+        const voiceHint = document.getElementById('voiceHint');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const loadingText = document.getElementById('loading-text');
 
-function toggleVoice(){
-if(voiceOn){recognition.stop();voiceBtn.classList.remove('active');voiceOn=false;return}
-if(!recognition&&!initVoice())return;
-try{recognition.start()}catch(e){}
-}
+        const smoothSlider = document.getElementById('smoothSlider');
+        const whitenSlider = document.getElementById('whitenSlider');
+        const slimSlider = document.getElementById('slimSlider');
+        const eyeSlider = document.getElementById('eyeSlider');
+        const gfpganSlider = document.getElementById('gfpganSlider');
+        const smoothVal = document.getElementById('smoothVal');
+        const whitenVal = document.getElementById('whitenVal');
+        const slimVal = document.getElementById('slimVal');
+        const eyeVal = document.getElementById('eyeVal');
+        const gfpganVal = document.getElementById('gfpganVal');
 
-startBtn.onclick=()=>cameraOn?stopCamera():startCamera();
-captureBtn.onclick=takePhoto;
-voiceBtn.onclick=toggleVoice;
+        const lipstickSlider = document.getElementById('lipstickSlider');
+        const blushSlider = document.getElementById('blushSlider');
+        const lipstickVal = document.getElementById('lipstickVal');
+        const blushVal = document.getElementById('blushVal');
 
-colorBtns.forEach(b=>b.onclick=()=>{colorBtns.forEach(x=>x.classList.remove('active'));b.classList.add('active');currentColor=b.dataset.color});
+        const brightSlider = document.getElementById('brightSlider');
+        const brightVal = document.getElementById('brightVal');
+        const lightBtn = document.getElementById('lightBtn');
+        const captureBtn = document.getElementById('captureBtn');
+        const voiceBtn = document.getElementById('voiceBtn');
+        const beautyBtns = document.querySelectorAll('.beauty-btn');
+        const colorBtns = document.querySelectorAll('.color-btn');
+        const lipstickBtns = document.querySelectorAll('.lipstick-btn');
+        const lightModeBtns = document.querySelectorAll('.light-mode-btn');
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
 
-brightSlider.oninput=()=>{bright=parseInt(brightSlider.value);brightVal.textContent=`强度: ${bright}%`};
+        const beautyPresets = {
+            none: { smooth: 0, whiten: 0, slim: 0, eye: 0, gfpgan: 0 },
+            natural: { smooth: 45, whiten: 30, slim: 12, eye: 10, gfpgan: 0 },
+            glamour: { smooth: 75, whiten: 55, slim: 28, eye: 22, gfpgan: 0 },
+            ai: { smooth: 60, whiten: 40, slim: 20, eye: 16, gfpgan: 40 }
+        };
 
-lightBtn.onclick=()=>{lightOn=!lightOn;lightBtn.innerHTML=lightOn?'💡 补光':'🔴 关灯';lightBtn.classList.toggle('off',!lightOn)};
-</script>
+        const lipstickColors = {
+            red: { r: 231, g: 76, b: 60 },
+            pink: { r: 255, g: 105, b: 180 },
+            orange: { r: 230, g: 126, b: 34 },
+            coral: { r: 255, g: 127, b: 80 },
+            rose: { r: 194, g: 24, b: 91 }
+        };
+
+        const colors = {
+            warm: { r: 255, g: 230, b: 190 },
+            cool: { r: 200, g: 225, b: 255 },
+            natural: { r: 255, g: 250, b: 220 },
+            sunset: { r: 255, g: 210, b: 200 }
+        };
+
+        let currentPreset = 'none';
+        let currentColor = 'warm';
+        let currentLightMode = 'normal';
+        let currentLipstick = 'red';
+        let smooth = 0, whiten = 0, slim = 0, eye = 0, gfpgan = 0;
+        let lipstick = 0, blush = 0;
+        let bright = 30;
+        let lightOn = true;
+        let cameraOn = false;
+        let voiceOn = false;
+        let stream = null;
+        let recognition = null;
+        let animationId = null;
+        let faceMesh = null;
+        let faceLandmarks = null;
+
+        const LIP_TOP_OUTER = [61, 185, 40, 39, 37, 0, 267, 269, 270, 409, 291];
+        const LIP_BOTTOM_OUTER = [146, 91, 181, 84, 17, 314, 405, 321, 375, 291];
+
+        async function initFaceMesh() {
+            faceMesh = new FaceMesh({
+                locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+            });
+            faceMesh.setOptions({
+                maxNumFaces: 1,
+                refineLandmarks: true,
+                minDetectionConfidence: 0.5,
+                minTrackingConfidence: 0.5
+            });
+            faceMesh.onResults(onFaceResults);
+            await faceMesh.initialize();
+        }
+
+        function onFaceResults(results) {
+            if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+                faceLandmarks = results.multiFaceLandmarks[0];
+            } else {
+                faceLandmarks = null;
+            }
+        }
+
+        const GPUBeauty = {
+            applySkinSmoothing(imageData, strength) {
+                if (strength <= 0) return imageData;
+                const data = imageData.data;
+                const width = imageData.width;
+                const height = imageData.height;
+                const result = new Uint8ClampedArray(data);
+                const radius = Math.floor(2 + strength / 12);
+                const sigmaColor = 30 + strength * 0.5;
+                const sigmaSpace = 2 + strength / 20;
+                
+                for (let y = radius; y < height - radius; y += 2) {
+                    for (let x = radius; x < width - radius; x += 2) {
+                        let r = 0, g = 0, b = 0, weight = 0;
+                        const centerIdx = (y * width + x) * 4;
+                        const centerR = data[centerIdx];
+                        const centerG = data[centerIdx + 1];
+                        const centerB = data[centerIdx + 2];
+                        
+                        for (let dy = -radius; dy <= radius; dy++) {
+                            for (let dx = -radius; dx <= radius; dx++) {
+                                const nx = x + dx;
+                                const ny = y + dy;
+                                const idx = (ny * width + nx) * 4;
+                                
+                                const colorDiff = Math.abs(data[idx] - centerR) + 
+                                                  Math.abs(data[idx+1] - centerG) + 
+                                                  Math.abs(data[idx+2] - centerB);
+                                const spatialDiff = dx*dx + dy*dy;
+                                const w = Math.exp(-colorDiff*colorDiff/(2*sigmaColor*sigmaColor) - spatialDiff/(2*sigmaSpace*sigmaSpace));
+                                
+                                r += data[idx] * w;
+                                g += data[idx+1] * w;
+                                b += data[idx+2] * w;
+                                weight += w;
+                            }
+                        }
+                        
+                        const resultIdx = (y * width + x) * 4;
+                        result[resultIdx] = r / weight;
+                        result[resultIdx+1] = g / weight;
+                        result[resultIdx+2] = b / weight;
+                        
+                        if (x + 1 < width - radius) {
+                            const rIdx = resultIdx + 4;
+                            result[rIdx] = r / weight;
+                            result[rIdx+1] = g / weight;
+                            result[rIdx+2] = b / weight;
+                        }
+                    }
+                }
+                return new ImageData(result, width, height);
+            },
+
+            applyWhitening(imageData, strength) {
+                if (strength <= 0) return imageData;
+                const data = imageData.data;
+                const amount = strength / 100 * 0.4;
+                
+                for (let i = 0; i < data.length; i += 4) {
+                    const r = data[i], g = data[i+1], b = data[i+2];
+                    const rNorm = r / 255, gNorm = g / 255, bNorm = b / 255;
+                    const max = Math.max(rNorm, gNorm, bNorm);
+                    const min = Math.min(rNorm, gNorm, bNorm);
+                    const l = (max + min) / 2;
+                    
+                    if (l > 0.25 && l < 0.95) {
+                        const skinLikeness = Math.max(0, 1 - Math.abs(gNorm - rNorm * 0.75) * 2.5 - Math.abs(bNorm - rNorm * 0.55) * 2.5);
+                        if (skinLikeness > 0.25) {
+                            const factor = 1 + amount * skinLikeness;
+                            data[i] = Math.min(255, r * factor);
+                            data[i+1] = Math.min(255, g * factor * 0.98);
+                            data[i+2] = Math.min(255, b * factor * 0.95);
+                        }
+                    }
+                }
+                return imageData;
+            }
+        };
+
+        const GFPGANSim = {
+            enhance(imageData, strength) {
+                if (strength <= 0) return imageData;
+                const data = imageData.data;
+                const width = imageData.width;
+                const height = imageData.height;
+                const amount = strength / 100;
+                
+                for (let y = 1; y < height - 1; y++) {
+                    for (let x = 1; x < width - 1; x++) {
+                        const idx = (y * width + x) * 4;
+                        
+                        let lapR = 0, lapG = 0, lapB = 0;
+                        for (let ky = -1; ky <= 1; ky++) {
+                            for (let kx = -1; kx <= 1; kx++) {
+                                const nidx = ((y + ky) * width + (x + kx)) * 4;
+                                const k = (ky === 0 && kx === 0) ? 8 : -1;
+                                lapR += data[nidx] * k;
+                                lapG += data[nidx+1] * k;
+                                lapB += data[nidx+2] * k;
+                            }
+                        }
+                        
+                        const blend = 0.08 * amount;
+                        data[idx] = Math.min(255, Math.max(0, data[idx] + lapR * blend));
+                        data[idx+1] = Math.min(255, Math.max(0, data[idx+1] + lapG * blend));
+                        data[idx+2] = Math.min(255, Math.max(0, data[idx+2] + lapB * blend));
+                    }
+                }
+                return imageData;
+            }
+        };
+
+        const SmartLighting = {
+            applySmartFaceLight(ctx, landmarks, width, height, strength, color) {
+                if (!landmarks || strength <= 0) return;
+                
+                const c = colors[color];
+                
+                const faceCenter = {
+                    x: landmarks[1].x * width,
+                    y: landmarks[1].y * height
+                };
+                const faceTop = landmarks[10].y * height;
+                const faceBottom = landmarks[152].y * height;
+                const faceHeight = faceBottom - faceTop;
+                const lightRadius = faceHeight * 1.2;
+                
+                const gradient = ctx.createRadialGradient(
+                    faceCenter.x, faceCenter.y, 0,
+                    faceCenter.x, faceCenter.y, lightRadius
+                );
+                gradient.addColorStop(0, `rgba(${c.r}, ${c.g}, ${c.b}, ${strength / 100 * 0.35})`);
+                gradient.addColorStop(1, `rgba(${c.r}, ${c.g}, ${c.b}, 0)`);
+                
+                ctx.save();
+                ctx.globalCompositeOperation = 'screen';
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(faceCenter.x, faceCenter.y, lightRadius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            },
+
+            applyBacklightRepair(imageData, strength) {
+                if (strength <= 0) return imageData;
+                
+                const data = imageData.data;
+                const width = imageData.width;
+                const height = imageData.height;
+                const amount = strength / 100;
+                
+                let histogram = new Array(256).fill(0);
+                for (let i = 0; i < data.length; i += 4) {
+                    const brightness = Math.round(0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2]);
+                    histogram[brightness]++;
+                }
+                
+                let cdf = 0;
+                let cdfMin = 0;
+                for (let i = 0; i < 256; i++) {
+                    if (histogram[i] > 0) {
+                        cdfMin = histogram[i];
+                        break;
+                    }
+                }
+                
+                let cdfMap = new Array(256).fill(0);
+                
+                for (let i = 0; i < 256; i++) {
+                    cdf += histogram[i];
+                    cdfMap[i] = Math.round((cdf - cdfMin) / (width * height - cdfMin) * 255);
+                }
+                
+                for (let i = 0; i < data.length; i += 4) {
+                    const brightness = Math.round(0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2]);
+                    const newBrightness = cdfMap[brightness];
+                    const ratio = brightness > 0 ? newBrightness / brightness : 1;
+                    
+                    const blend = 0.3 + amount * 0.5;
+                    data[i] = Math.min(255, data[i] * (1 - blend) + Math.min(255, data[i] * ratio) * blend);
+                    data[i+1] = Math.min(255, data[i+1] * (1 - blend) + Math.min(255, data[i+1] * ratio) * blend);
+                    data[i+2] = Math.min(255, data[i+2] * (1 - blend) + Math.min(255, data[i+2] * ratio) * blend);
+                }
+                
+                return imageData;
+            },
+
+            applyNormalLight(ctx, width, height, strength, color) {
+                const c = colors[color];
+                const a = strength / 100;
+                const gradient = ctx.createRadialGradient(
+                    width * 0.5, height * 0.3, 0,
+                    width * 0.5, height * 0.3, Math.max(width, height) * 0.7
+                );
+                gradient.addColorStop(0, `rgba(${c.r}, ${c.g}, ${c.b}, ${a * 0.35})`);
+                gradient.addColorStop(1, `rgba(${c.r}, ${c.g}, ${c.b}, 0)`);
+                ctx.save();
+                ctx.globalCompositeOperation = 'screen';
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, width, height);
+                ctx.restore();
+            }
+        };
+
+        function drawLipstick(ctx, landmarks, width, height, color, strength) {
+            if (!landmarks || strength <= 0) return;
+            
+            const lipPoints = [];
+            LIP_TOP_OUTER.forEach(i => lipPoints.push({ x: landmarks[i].x * width, y: landmarks[i].y * height }));
+            LIP_BOTTOM_OUTER.slice(1, -1).reverse().forEach(i => lipPoints.push({ x: landmarks[i].x * width, y: landmarks[i].y * height }));
+            
+            ctx.beginPath();
+            ctx.moveTo(lipPoints[0].x, lipPoints[0].y);
+            lipPoints.slice(1).forEach(p => ctx.lineTo(p.x, p.y));
+            ctx.closePath();
+            
+            const lipColor = lipstickColors[color];
+            ctx.save();
+            ctx.globalAlpha = strength / 100 * 0.85;
+            ctx.fillStyle = `rgb(${lipColor.r}, ${lipColor.g}, ${lipColor.b})`;
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function drawBlush(ctx, landmarks, width, height, strength) {
+            if (!landmarks || strength <= 0) return;
+            
+            const leftCheek = { x: landmarks[50].x * width, y: landmarks[50].y * height };
+            const rightCheek = { x: landmarks[280].x * width, y: landmarks[280].y * height };
+            const blushRadius = width * 0.12;
+            
+            [leftCheek, rightCheek].forEach(cheek => {
+                const gradient = ctx.createRadialGradient(cheek.x, cheek.y, 0, cheek.x, cheek.y, blushRadius);
+                gradient.addColorStop(0, `rgba(255, 150, 150, ${strength / 100 * 0.5})`);
+                gradient.addColorStop(1, 'rgba(255, 150, 150, 0)');
+                ctx.save();
+                ctx.globalCompositeOperation = 'overlay';
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(cheek.x, cheek.y, blushRadius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+        }
+
+        function applyFaceWarp(ctx, srcCanvas, landmarks, width, height, slimAmount, eyeAmount) {
+            if (!landmarks || (slimAmount <= 0 && eyeAmount <= 0)) {
+                ctx.drawImage(srcCanvas, 0, 0);
+                return;
+            }
+            
+            const tempData = ctx.getImageData(0, 0, width, height);
+            const resultData = new Uint8ClampedArray(tempData.data);
+            
+            const noseTip = { x: landmarks[1].x * width, y: landmarks[1].y * height };
+            const chin = { x: landmarks[152].x * width, y: landmarks[152].y * height };
+            
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    let srcX = x, srcY = y;
+                    
+                    if (slimAmount > 0) {
+                        const distFromCenter = x - noseTip.x;
+                        const vertRatio = Math.max(0, 1 - Math.abs(y - noseTip.y) / (chin.y - noseTip.y) * 1.5);
+                        const warp = distFromCenter * slimAmount * 0.002 * vertRatio;
+                        srcX = x - warp;
+                    }
+                    
+                    if (eyeAmount > 0) {
+                        const leftEyeCenter = { x: landmarks[468].x * width, y: landmarks[468].y * height };
+                        const rightEyeCenter = { x: landmarks[473].x * width, y: landmarks[473].y * height };
+                        
+                        [leftEyeCenter, rightEyeCenter].forEach(eye => {
+                            const dx = x - eye.x;
+                            const dy = y - eye.y;
+                            const dist = Math.sqrt(dx * dx + dy * dy);
+                            const eyeRadius = width * 0.06;
+                            
+                            if (dist < eyeRadius * 2) {
+                                const factor = 1 - eyeAmount * 0.003 * (1 - dist / (eyeRadius * 2));
+                                srcX = eye.x + dx * factor;
+                                srcY = eye.y + dy * factor;
+                            }
+                        });
+                    }
+                    
+                    srcX = Math.max(0, Math.min(width - 1, srcX));
+                    srcY = Math.max(0, Math.min(height - 1, srcY));
+                    
+                    const dstIdx = (y * width + x) * 4;
+                    const srcIdx = (Math.floor(srcY) * width + Math.floor(srcX)) * 4;
+                    
+                    resultData[dstIdx] = tempData.data[srcIdx];
+                    resultData[dstIdx + 1] = tempData.data[srcIdx + 1];
+                    resultData[dstIdx + 2] = tempData.data[srcIdx + 2];
+                    resultData[dstIdx + 3] = tempData.data[srcIdx + 3];
+                }
+            }
+            
+            ctx.putImageData(new ImageData(resultData, width, height), 0, 0);
+        }
+
+        async function startCamera() {
+            showLoading('正在启动相机...');
+            placeholder.innerHTML = '<span class="icon">📷</span><h3>启动中...</h3><p>请稍候</p>';
+            
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'user', width: 640, height: 480 },
+                    audio: false
+                });
+                
+                video.srcObject = stream;
+                await video.play();
+                
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                
+                video.style.display = 'block';
+                placeholder.classList.add('hidden');
+                startBtn.innerHTML = '<span>⏸️</span><span>关闭相机</span>';
+                btnText.textContent = '关闭相机';
+                statusBar.style.display = 'flex';
+                statusText.textContent = 'GPU加速运行中 | 0 FPS';
+                cameraOn = true;
+                
+                hideLoading();
+                processFrame();
+                
+            } catch (err) {
+                console.error('Camera error:', err);
+                placeholder.innerHTML = '<span class="icon">❌</span><h3>无法访问相机</h3><p>请检查权限设置</p>';
+                hideLoading();
+            }
+        }
+
+        function stopCamera() {
+            if (animationId) cancelAnimationFrame(animationId);
+            if (stream) stream.getTracks().forEach(t => t.stop());
+            stream = null;
+            video.srcObject = null;
+            video.style.display = 'none';
+            placeholder.classList.remove('hidden');
+            placeholder.innerHTML = '<span class="icon">📷</span><h3>相机就绪</h3><p>点击下方按钮开启相机</p>';
+            startBtn.innerHTML = '<span>📸</span><span>开启相机</span>';
+            btnText.textContent = '开启相机';
+            statusBar.style.display = 'none';
+            cameraOn = false;
+        }
+
+        let lastFpsTime = performance.now();
+        let frameCount = 0;
+        
+        function processFrame() {
+            if (!cameraOn) return;
+            
+            const cameraBox = document.querySelector('.camera-box');
+            const displayWidth = cameraBox.clientWidth;
+            const displayHeight = cameraBox.clientHeight;
+            const videoRatio = video.videoWidth / video.videoHeight;
+            const displayRatio = displayWidth / displayHeight;
+            
+            let drawWidth, drawHeight, drawX, drawY;
+            if (videoRatio > displayRatio) {
+                drawWidth = displayWidth;
+                drawHeight = displayWidth / videoRatio;
+                drawX = 0;
+                drawY = (displayHeight - drawHeight) / 2;
+            } else {
+                drawHeight = displayHeight;
+                drawWidth = displayHeight * videoRatio;
+                drawX = (displayWidth - drawWidth) / 2;
+                drawY = 0;
+            }
+            
+            if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
+                canvas.width = displayWidth;
+                canvas.height = displayHeight;
+            }
+            
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, displayWidth, displayHeight);
+            
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = video.videoWidth;
+            tempCanvas.height = video.videoHeight;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.drawImage(video, 0, 0);
+            
+            let imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+            
+            if (smooth > 0) {
+                imageData = GPUBeauty.applySkinSmoothing(imageData, smooth);
+            }
+            
+            if (whiten > 0) {
+                imageData = GPUBeauty.applyWhitening(imageData, whiten);
+            }
+            
+            if (gfpgan > 0) {
+                imageData = GFPGANSim.enhance(imageData, gfpgan);
+            }
+            
+            if (lightOn && bright > 0 && currentLightMode === 'backlight') {
+                imageData = SmartLighting.applyBacklightRepair(imageData, bright);
+            }
+            
+            tempCtx.putImageData(imageData, 0, 0);
+            
+            if (faceLandmarks && (slim > 0 || eye > 0)) {
+                const warpCanvas = document.createElement('canvas');
+                warpCanvas.width = tempCanvas.width;
+                warpCanvas.height = tempCanvas.height;
+                const warpCtx = warpCanvas.getContext('2d');
+                warpCtx.drawImage(tempCanvas, 0, 0);
+                applyFaceWarp(tempCtx, warpCanvas, faceLandmarks, tempCanvas.width, tempCanvas.height, slim, eye);
+            }
+            
+            if (faceLandmarks) {
+                drawLipstick(tempCtx, faceLandmarks, tempCanvas.width, tempCanvas.height, currentLipstick, lipstick);
+                drawBlush(tempCtx, faceLandmarks, tempCanvas.width, tempCanvas.height, blush);
+            }
+            
+            if (lightOn && bright > 0 && currentLightMode === 'smart' && faceLandmarks) {
+                SmartLighting.applySmartFaceLight(tempCtx, faceLandmarks, tempCanvas.width, tempCanvas.height, bright, currentColor);
+            }
+            
+            ctx.drawImage(tempCanvas, drawX, drawY, drawWidth, drawHeight);
+            
+            if (lightOn && bright > 0 && currentLightMode === 'normal') {
+                SmartLighting.applyNormalLight(ctx, displayWidth, displayHeight, bright, currentColor);
+            }
+            
+            if (faceMesh) {
+                faceMesh.send({ image: video });
+            }
+            
+            frameCount++;
+            const now = performance.now();
+            if (now - lastFpsTime > 1000) {
+                statusText.textContent = `GPU加速运行中 | ${frameCount} FPS`;
+                frameCount = 0;
+                lastFpsTime = now;
+            }
+            
+            animationId = requestAnimationFrame(processFrame);
+        }
+
+        function takePhoto() {
+            if (!cameraOn) { alert('请先开启相机'); return; }
+            
+            const photoCanvas = document.createElement('canvas');
+            photoCanvas.width = video.videoWidth;
+            photoCanvas.height = video.videoHeight;
+            const photoCtx = photoCanvas.getContext('2d');
+            
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = video.videoWidth;
+            tempCanvas.height = video.videoHeight;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.drawImage(video, 0, 0);
+            
+            let imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+            
+            if (smooth > 0) {
+                imageData = GPUBeauty.applySkinSmoothing(imageData, smooth);
+            }
+            
+            if (whiten > 0) {
+                imageData = GPUBeauty.applyWhitening(imageData, whiten);
+            }
+            
+            if (gfpgan > 0) {
+                imageData = GFPGANSim.enhance(imageData, gfpgan);
+            }
+            
+            if (lightOn && bright > 0 && currentLightMode === 'backlight') {
+                imageData = SmartLighting.applyBacklightRepair(imageData, bright);
+            }
+            
+            tempCtx.putImageData(imageData, 0, 0);
+            
+            if (faceLandmarks && (slim > 0 || eye > 0)) {
+                const warpCanvas = document.createElement('canvas');
+                warpCanvas.width = tempCanvas.width;
+                warpCanvas.height = tempCanvas.height;
+                const warpCtx = warpCanvas.getContext('2d');
+                warpCtx.drawImage(tempCanvas, 0, 0);
+                applyFaceWarp(tempCtx, warpCanvas, faceLandmarks, tempCanvas.width, tempCanvas.height, slim, eye);
+            }
+            
+            if (faceLandmarks) {
+                drawLipstick(tempCtx, faceLandmarks, tempCanvas.width, tempCanvas.height, currentLipstick, lipstick);
+                drawBlush(tempCtx, faceLandmarks, tempCanvas.width, tempCanvas.height, blush);
+            }
+            
+            if (lightOn && bright > 0 && currentLightMode === 'smart' && faceLandmarks) {
+                SmartLighting.applySmartFaceLight(tempCtx, faceLandmarks, tempCanvas.width, tempCanvas.height, bright, currentColor);
+            }
+            
+            photoCtx.drawImage(tempCanvas, 0, 0);
+            
+            const link = document.createElement('a');
+            link.download = `photo_${Date.now()}.png`;
+            link.href = photoCanvas.toDataURL('image/png');
+            link.click();
+            
+            captureBtn.textContent = '✅ 已保存';
+            setTimeout(() => captureBtn.innerHTML = '📷 拍照', 1500);
+        }
+
+        function initVoice() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) return false;
+            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SR();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'zh-CN';
+            recognition.onstart = () => { voiceBtn.classList.add('active'); voiceHint.classList.add('active'); voiceOn = true; };
+            recognition.onend = () => { if (voiceOn) try { recognition.start(); } catch (e) { voiceOn = false; voiceBtn.classList.remove('active'); voiceHint.classList.remove('active'); } };
+            recognition.onerror = e => { if (e.error === 'not-allowed') { alert('请允许麦克风权限'); toggleVoice(); } };
+            recognition.onresult = e => {
+                let t = '';
+                for (let i = e.resultIndex; i < e.results.length; i++) {
+                    if (e.results[i].isFinal) t += e.results[i][0].transcript;
+                }
+                if (t && ['拍照', '茄子', 'cheese', '321', '开始', '咔嚓', '自拍'].some(c => t.includes(c))) {
+                    takePhoto();
+                }
+            };
+            return true;
+        }
+
+        function toggleVoice() {
+            if (voiceOn) {
+                recognition.stop();
+                voiceBtn.classList.remove('active');
+                voiceHint.classList.remove('active');
+                voiceOn = false;
+                return;
+            }
+            if (!recognition && !initVoice()) return;
+            try { recognition.start(); } catch (e) { }
+        }
+
+        function showLoading(text) {
+            loadingText.textContent = text;
+            loadingOverlay.classList.add('active');
+        }
+
+        function hideLoading() {
+            loadingOverlay.classList.remove('active');
+        }
+
+        startBtn.onclick = () => cameraOn ? stopCamera() : startCamera();
+        captureBtn.onclick = takePhoto;
+        voiceBtn.onclick = toggleVoice;
+
+        tabBtns.forEach(btn => btn.onclick = () => {
+            const tabId = btn.dataset.tab;
+            tabBtns.forEach(b => b.classList.remove('active'));
+            tabContents.forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+        });
+
+        beautyBtns.forEach(btn => btn.onclick = () => {
+            beautyBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentPreset = btn.dataset.preset;
+            const preset = beautyPresets[currentPreset];
+            smooth = preset.smooth;
+            whiten = preset.whiten;
+            slim = preset.slim;
+            eye = preset.eye;
+            gfpgan = preset.gfpgan;
+            smoothSlider.value = smooth;
+            whitenSlider.value = whiten;
+            slimSlider.value = slim;
+            eyeSlider.value = eye;
+            gfpganSlider.value = gfpgan;
+            smoothVal.textContent = smooth;
+            whitenVal.textContent = whiten;
+            slimVal.textContent = slim;
+            eyeVal.textContent = eye;
+            gfpganVal.textContent = gfpgan;
+        });
+
+        colorBtns.forEach(btn => btn.onclick = () => {
+            colorBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentColor = btn.dataset.color;
+        });
+
+        lightModeBtns.forEach(btn => btn.onclick = () => {
+            lightModeBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentLightMode = btn.dataset.lightMode;
+        });
+
+        lipstickBtns.forEach(btn => btn.onclick = () => {
+            lipstickBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentLipstick = btn.dataset.lipstick;
+        });
+
+        smoothSlider.oninput = () => { smooth = parseInt(smoothSlider.value); smoothVal.textContent = smooth; };
+        whitenSlider.oninput = () => { whiten = parseInt(whitenSlider.value); whitenVal.textContent = whiten; };
+        slimSlider.oninput = () => { slim = parseInt(slimSlider.value); slimVal.textContent = slim; };
+        eyeSlider.oninput = () => { eye = parseInt(eyeSlider.value); eyeVal.textContent = eye; };
+        gfpganSlider.oninput = () => { gfpgan = parseInt(gfpganSlider.value); gfpganVal.textContent = gfpgan; };
+
+        lipstickSlider.oninput = () => { lipstick = parseInt(lipstickSlider.value); lipstickVal.textContent = lipstick; };
+        blushSlider.oninput = () => { blush = parseInt(blushSlider.value); blushVal.textContent = blush; };
+
+        brightSlider.oninput = () => { bright = parseInt(brightSlider.value); brightVal.textContent = `强度: ${bright}%`; };
+
+        lightBtn.onclick = () => {
+            lightOn = !lightOn;
+            lightBtn.innerHTML = lightOn ? '💡 补光' : '🔴 关灯';
+            lightBtn.classList.toggle('off', !lightOn);
+        };
+
+        initFaceMesh();
+        console.log('✨ AI补光相机已加载');
+        console.log('📦 集成: gpupixel GPU美颜 + MediaPipe Face Mesh + GFPGAN AI修复 + 智能补光');
+    </script>
 </body>
 </html>
